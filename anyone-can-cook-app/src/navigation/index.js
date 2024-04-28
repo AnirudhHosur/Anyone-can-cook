@@ -8,13 +8,17 @@ import Basket from '../screens/Basket';
 //import { createMaterialBottomTabNavigator } from 'react-native-paper/lib/typescript/react-navigation';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { Entypo, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
+import LoginScreen from '../screens/authScreens/LoginScreen';
+import RegisterScreen from '../screens/authScreens/RegisterScreen';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name='HomeTabs' component={HomeTabs}/>
+            <Stack.Screen name="LoginScreen" component={LoginScreen} />
+            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+            <Stack.Screen name='HomeTabs' component={HomeTabs} />
         </Stack.Navigator>
     )
 }
@@ -58,7 +62,7 @@ const HomeStack = createNativeStackNavigator();
 const HomeStackNavigator = () => {
     return (
         <HomeStack.Navigator>
-            <HomeStack.Screen name='Restaurants' component={HomeScreen} options={{headerTitleAlign: 'center'}} />
+            <HomeStack.Screen name='Restaurants' component={HomeScreen} options={{ headerTitleAlign: 'center' }} />
             <HomeStack.Screen name='Restaurant' component={RestaurantDetailsScreen} />
             <HomeStack.Screen name='Dish' component={DishDetailsScreen} />
             <HomeStack.Screen name='Basket' component={Basket} />
@@ -71,8 +75,8 @@ const OrdersStack = createNativeStackNavigator();
 const OrderStackNavigator = () => {
     return (
         <OrdersStack.Navigator>
-            <OrdersStack.Screen name='Orders' component={OrderScreen} options={{headerTitleAlign: 'center'}} />
-            <OrdersStack.Screen name='Order' component={OrderDetails} options={{headerTitleAlign: 'center'}} />
+            <OrdersStack.Screen name='Orders' component={OrderScreen} options={{ headerTitleAlign: 'center' }} />
+            <OrdersStack.Screen name='Order' component={OrderDetails} options={{ headerTitleAlign: 'center' }} />
         </OrdersStack.Navigator>
     )
 }
