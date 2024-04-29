@@ -1,56 +1,71 @@
 import { Image, StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
-import restaurants from '../../../assets/data/restaurants.json'
 import { AntDesign } from '@expo/vector-icons'
-import { useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
-
-const dish = restaurants[0].dishes[0]
+import { useEffect, useState } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { fetchDish } from '../../services/firebaseServices';
 
 const DishDetailsScreen = () => {
-
     const navigation = useNavigation();
+    const route = useRoute();
+    const { dishId } = route.params;
 
+    const [dish, setDish] = useState(null);
     const [quantity, setQuantity] = useState(1);
+
+    useEffect(() => {
+        const loadDish = async () => {
+            try {
+                const fetchedDish = await fetchDish(dishId);
+                if (fetchedDish) {
+                    setDish(fetchedDish);
+                } else {
+                    console.error('No dish data available');
+                }
+            } catch (error) {
+                console.error('Error fetching dish:', error);
+            }
+        };
+
+        loadDish();
+    }, [dishId]);
+
 
     const onMinus = () => {
         if (quantity > 1) {
-            setQuantity(quantity - 1)
+            setQuantity(quantity - 1);
         }
-    }
+    };
 
     const onPlus = () => {
-        setQuantity(quantity + 1)
-    }
+        setQuantity(quantity + 1);
+    };
 
     const getTotal = () => {
-        return (dish.price * quantity).toFixed(2);
+        if (dish) {
+            return (dish.price * quantity).toFixed(2);
+        }
+        return "0.00";
+    };
+
+    if (!dish) {
+        return <View style={styles.page}><Text>Loading...</Text></View>;
     }
 
     return (
         <View style={styles.page}>
             <Text style={styles.name}>{dish.name}</Text>
-            <Text style={styles.description}>{dish.description}</Text>
+            <Text style={styles.description}>{dish.shortDescription}</Text>
 
-            <View style={styles.seperator} />
+            <View style={styles.separator} />
 
             <View style={styles.row}>
-                <AntDesign
-                    name='minuscircleo'
-                    size={60}
-                    color={"black"}
-                    onPress={onMinus}
-                />
+                <AntDesign name='minuscircleo' size={60} color={"black"} onPress={onMinus} />
                 <Text style={styles.quantity}>{quantity}</Text>
-                <AntDesign
-                    name='pluscircleo'
-                    size={60}
-                    color={"black"}
-                    onPress={onPlus}
-                />
+                <AntDesign name='pluscircleo' size={60} color={"black"} onPress={onPlus} />
             </View>
 
-            <Pressable onPress={() => navigation.navigate('Basket')} style = {styles.button}>
-                <Text style = {styles.buttonText}>Add {quantity} to basket • $ {getTotal()}</Text>
+            <Pressable onPress={() => navigation.navigate('Basket')} style={styles.button}>
+                <Text style={styles.buttonText}>Add {quantity} to basket • $ {getTotal()}</Text>
             </Pressable>
         </View>
     );
@@ -76,7 +91,7 @@ const styles = StyleSheet.create({
         color: 'grey'
     },
 
-    seperator: {
+    separator: {
         height: 1,
         backgroundColor: 'lightgrey',
         marginVertical: 10

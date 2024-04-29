@@ -10,6 +10,7 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import { Entypo, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
 import LoginScreen from '../screens/authScreens/LoginScreen';
 import RegisterScreen from '../screens/authScreens/RegisterScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -39,14 +40,14 @@ const HomeTabs = () => {
                     )
                 }}
             />
-            <Tab.Screen name='Orders' component={OrderStackNavigator}
+            <Tab.Screen name='Orders Tab' component={OrderStackNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
                         <FontAwesome6 name="list-check" size={24} color={color} />
                     )
                 }}
             />
-            <Tab.Screen name='Profile' component={HomeScreen}
+            <Tab.Screen name='Profile' component={ProfileScreen}
                 options={{
                     tabBarIcon: ({ color }) => (
                         <MaterialIcons name="account-circle" size={24} color={color} />
@@ -63,7 +64,7 @@ const HomeStackNavigator = () => {
     return (
         <HomeStack.Navigator>
             <HomeStack.Screen name='Restaurants' component={HomeScreen} options={{ headerTitleAlign: 'center' }} />
-            <HomeStack.Screen name='Restaurant' component={RestaurantDetailsScreen} />
+            <HomeStack.Screen name='Restaurant' component={RestaurantDetailsScreen} options={{ headerShown: false }} />
             <HomeStack.Screen name='Dish' component={DishDetailsScreen} />
             <HomeStack.Screen name='Basket' component={Basket} />
         </HomeStack.Navigator>

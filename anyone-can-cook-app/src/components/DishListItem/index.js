@@ -8,11 +8,11 @@ const DishListItem = ({ dish }) => {
     return (
         <Pressable 
             style={styles.container} 
-            onPress={() => navigation.navigate('Dish', {id: dish.id})}
+            onPress={() => navigation.navigate('Dish', {dishId: dish.id})}
         >
             <View style={{ flex: 1 }}>
                 <Text style={styles.name}>{dish.name}</Text>
-                <Text style={styles.description} numberOfLines={2}>{dish.description}</Text>
+                <Text style={styles.description} numberOfLines={2}>{dish.shortDescription}</Text>
                 <Text style={styles.price}>$ {dish.price}</Text>
             </View>
             <View>

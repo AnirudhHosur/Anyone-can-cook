@@ -12,7 +12,7 @@ const LoginScreen = ({ navigation }) => {
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
                     // Logged in
-                    console.log("User logged in:", userCredential.user);
+                    //console.log("User logged in:", userCredential.user);
                     Alert.alert('Login Successful', 'You are now logged in!');
                     navigation.navigate('HomeTabs');
                 })
