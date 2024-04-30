@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View, FlatList } from 'react-native';
+import { Image, StyleSheet, Text, View, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DishListItem from '../../components/DishListItem';
 import styles from './styles';
@@ -6,6 +6,7 @@ import RestaurantHeader from './header';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { fetchRestaurants, fetchDishes } from '../../services/firebaseServices';
 import { useEffect, useState } from 'react';
+import { useBasketContext } from '../../navigation/BasketContext';
 
 export const RestaurantDetailsScreen = () => {
 
@@ -16,12 +17,17 @@ export const RestaurantDetailsScreen = () => {
     const [restaurant, setRestaurant] = useState(null);
     const [dishes, setDishes] = useState([]);
 
+    const { setRestaurant: setBasketRestaurant, basket, basketDishes } = useBasketContext()
+
     useEffect(() => {
         const getRestaurantDetails = async () => {
+            setBasketRestaurant(null);
             const allRestaurants = await fetchRestaurants();
             const foundRestaurant = allRestaurants.find(r => r.id === restaurantId);
             if (foundRestaurant) {
                 setRestaurant(foundRestaurant);
+                // Coming from BasketContext
+                setBasketRestaurant(foundRestaurant);
                 const fetchedDishes = await fetchDishes(restaurantId);
                 setDishes(fetchedDishes)
             }
@@ -55,6 +61,11 @@ export const RestaurantDetailsScreen = () => {
                 color="white"
                 style={styles.iconContainer}
             />
+            {
+                basket && <Pressable onPress={() => navigation.navigate("Basket")} style={styles.button}>
+                    <Text style={styles.buttonText}>Open Basket • ({basketDishes.length})</Text>
+                </Pressable>
+            }
         </View>
     )
 }

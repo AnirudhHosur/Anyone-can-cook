@@ -1,12 +1,15 @@
 import { FlatList, Image, StyleSheet, Text, TextInput, View } from 'react-native';
 import restaurants from '../../../assets/data/restaurants.json'
-import { AntDesign } from '@expo/vector-icons'
-import { useState } from 'react';
+import { useBasketContext } from '../../navigation/BasketContext';
 import BasketDishItem from '../../components/BasketDishItem';
 
-const restaurant = restaurants[0]
+//const restaurant = restaurants[0]
 
 const Basket = () => {
+
+    const { restaurant, basketDishes, totalPrice } = useBasketContext();
+    const deliveryFee = restaurant.deliveryFee || 0;
+    const finalTotal = totalPrice + deliveryFee;
 
     return (
         <View style={styles.page}>
@@ -14,14 +17,20 @@ const Basket = () => {
             <Text style={styles.yourItems}>Your Items</Text>
 
             <FlatList
-                data={restaurant.dishes}
+                data={basketDishes}
                 renderItem={({ item }) => <BasketDishItem basketDish={item} />}
             />
 
             <View style={styles.separator} />
 
+            <View style={{ paddingHorizontal: 10 }}>
+                <Text style={styles.totalLabel}>Total Price: ${totalPrice.toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Delivery Fee: ${deliveryFee.toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Final Total: ${finalTotal.toFixed(2)}</Text>
+            </View>
+
             <View style={styles.button}>
-                <Text style={styles.buttonText}>Create Order</Text>
+                <Text style={styles.buttonText}>Create Order </Text>
             </View>
         </View>
     );
@@ -33,7 +42,7 @@ const styles = StyleSheet.create({
     page: {
         flex: 1,
         width: "100%",
-        paddingVertical: 40, // temp fix
+        //paddingVertical: 40,
         padding: 10,
     },
     yourItems: {
@@ -81,5 +90,9 @@ const styles = StyleSheet.create({
         paddingVertical: 2,
         marginRight: 10,
         borderRadius: 3,
+    },
+    totalLabel: {
+        fontSize: 16,
+        marginVertical: 8, // Add some space between the totals for better readability
     },
 });

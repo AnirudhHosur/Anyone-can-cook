@@ -7,10 +7,9 @@ import { useNavigation } from '@react-navigation/native';
 
 const ProfileScreen = () => {
 
-    const navigation = useNavigation();
-
     const [user, setUser] = useState(null);
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [address, setAddress] = useState('');
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
@@ -23,10 +22,11 @@ const ProfileScreen = () => {
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
                     const userData = docSnap.data();
-                    setName(userData.name);
+                    setFirstName(userData.firstName);
+                    setLastName(userData.lastName);
                     setAddress(userData.address);
-                    setLat(userData.lat.toString());
-                    setLng(userData.lng.toString());
+                    setLat(userData.lat?.toString());
+                    setLng(userData.lng?.toString());
                 }
                 setUser(user);
             }
@@ -39,7 +39,8 @@ const ProfileScreen = () => {
             try {
                 const userRef = doc(db, 'users', user.uid);
                 await setDoc(userRef, {
-                    name,
+                    firstName,
+                    lastName,
                     address,
                     lat: parseFloat(lat),
                     lng: parseFloat(lng)
@@ -56,9 +57,15 @@ const ProfileScreen = () => {
             <Text style={styles.title}>Profile</Text>
             <View style={styles.inputContainer}>
                 <TextInput
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Name"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                    placeholder="First Name"
+                    style={styles.input}
+                />
+                <TextInput
+                    value={lastName}
+                    onChangeText={setLastName}
+                    placeholder="Last Name"
                     style={styles.input}
                 />
                 <TextInput
@@ -85,7 +92,7 @@ const ProfileScreen = () => {
             <Button onPress={onSave} title="Save" />
             <Text
                 onPress={() => {
-                    auth.signOut()
+                    auth.signOut();
                     Alert.alert('Log out Successful', 'You have successfully logged out!');
                     navigation.navigate('LoginScreen');
                 }}

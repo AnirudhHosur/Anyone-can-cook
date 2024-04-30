@@ -3,6 +3,7 @@ import { AntDesign } from '@expo/vector-icons'
 import { useEffect, useState } from 'react';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fetchDish } from '../../services/firebaseServices';
+import { useBasketContext } from '../../navigation/BasketContext';
 
 const DishDetailsScreen = () => {
     const navigation = useNavigation();
@@ -11,6 +12,8 @@ const DishDetailsScreen = () => {
 
     const [dish, setDish] = useState(null);
     const [quantity, setQuantity] = useState(1);
+
+    const { addDishToBasket } = useBasketContext();
 
     useEffect(() => {
         const loadDish = async () => {
@@ -29,7 +32,6 @@ const DishDetailsScreen = () => {
         loadDish();
     }, [dishId]);
 
-
     const onMinus = () => {
         if (quantity > 1) {
             setQuantity(quantity - 1);
@@ -39,6 +41,11 @@ const DishDetailsScreen = () => {
     const onPlus = () => {
         setQuantity(quantity + 1);
     };
+
+    const onAddToBasket = async () => {
+        await addDishToBasket(dish, quantity)
+        navigation.goBack();
+    }
 
     const getTotal = () => {
         if (dish) {
@@ -64,7 +71,7 @@ const DishDetailsScreen = () => {
                 <AntDesign name='pluscircleo' size={60} color={"black"} onPress={onPlus} />
             </View>
 
-            <Pressable onPress={() => navigation.navigate('Basket')} style={styles.button}>
+            <Pressable onPress={onAddToBasket} style={styles.button}>
                 <Text style={styles.buttonText}>Add {quantity} to basket • $ {getTotal()}</Text>
             </Pressable>
         </View>
@@ -113,7 +120,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
         marginTop: 'auto',
         padding: 20,
-        alignItems: 'center'
+        alignItems: 'center',
+        margin: 10
     },
 
     buttonText: {
