@@ -14,7 +14,6 @@ export const fetchRestaurants = async () => {
   }
 };
 
-
 // Fetch dishes for a specific restaurant
 export const fetchDishes = async (restaurantId) => {
   try {

@@ -1,17 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
-import { Image, StyleSheet, Text, View, FlatList } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import RootNavigator from './src/navigation';
-import LoginScreen from './src/screens/authScreens/LoginScreen';
-import RegisterScreen from './src/screens/authScreens/RegisterScreen';
 import BasketContextProvider from './src/navigation/BasketContext';
+import OrderContextProvider from './src/navigation/OrderContext';
+import AuthContextProvider from './src/navigation/AuthContext';
 
 export default function App() {
   return (
     <NavigationContainer>
-      <BasketContextProvider>
-        <RootNavigator />
-      </BasketContextProvider>
+      <AuthContextProvider>
+        <BasketContextProvider>
+          <OrderContextProvider>
+            <RootNavigator />
+          </OrderContextProvider>
+        </BasketContextProvider>
+      </AuthContextProvider>
+
       <StatusBar style="light" />
     </NavigationContainer>
   );

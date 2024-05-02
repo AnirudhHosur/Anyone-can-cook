@@ -2,28 +2,40 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, View, TouchableOpacity, Alert } from 'react-native';
 import { auth } from '../../services/config';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuthContext } from '../../navigation/AuthContext';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { signIn } = useAuthContext();
 
-    const handleLogin = () => {
-        if (email && password) {
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Logged in
-                    //console.log("User logged in:", userCredential.user);
-                    Alert.alert('Login Successful', 'You are now logged in!');
-                    navigation.navigate('HomeTabs');
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    // Handle errors here
-                    Alert.alert('Login Failed', errorMessage);
-                });
-        } else {
-            Alert.alert('Input Required', 'Please enter both email and password.');
+    // const handleLogin = () => {
+    //     if (email && password) {
+    //         signInWithEmailAndPassword(auth, email, password)
+    //             .then((userCredential) => {
+    //                 // Logged in
+    //                 //console.log("User logged in:", userCredential.user);
+    //                 Alert.alert('Login Successful', 'You are now logged in!');
+    //                 //navigation.navigate('HomeTabs');
+    //             })
+    //             .catch((error) => {
+    //                 const errorCode = error.code;
+    //                 const errorMessage = error.message;
+    //                 // Handle errors here
+    //                 Alert.alert('Login Failed', errorMessage);
+    //             });
+    //     } else {
+    //         Alert.alert('Input Required', 'Please enter both email and password.');
+    //     }
+    // };
+
+    const handleLogin = async () => {
+        try {
+            await signIn(email, password);
+            Alert.alert('Login Successful', 'You are now logged in!');
+            // navigation.navigate('HomeTabs');
+        } catch (error) {
+            Alert.alert('Login Failed', error.message);
         }
     };
 

@@ -4,37 +4,49 @@ import { useNavigation } from '@react-navigation/native';
 import { auth, db } from '../../services/config';
 import { doc, setDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useAuthContext } from '../../navigation/AuthContext';
 
 const RegisterScreen = () => {
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const { signUp } = useAuthContext();
 
     const navigation = useNavigation();
 
-    const handleSignUp = () => {
-        if (email && password && firstName && lastName) {
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // User is created. Now add additional info to Firestore
-                    const userRef = doc(db, "users", userCredential.user.uid);
-                    return setDoc(userRef, {
-                        firstName: firstName,
-                        lastName: lastName,
-                        email: email
-                    });
-                })
-                .then(() => {
-                    Alert.alert('Registration Successful', 'You have registered successfully!');
-                    navigation.navigate('LoginScreen');
-                })
-                .catch((error) => {
-                    console.log(error);
-                    Alert.alert('Registration Failed', error.message);
-                });
-        } else {
-            Alert.alert('Input Required', 'Please fill all fields.');
+    // const handleSignUp = () => {
+    //     if (email && password && firstName && lastName) {
+    //         createUserWithEmailAndPassword(auth, email, password)
+    //             .then((userCredential) => {
+    //                 // User is created. Now add additional info to Firestore
+    //                 const userRef = doc(db, "users", userCredential.user.uid);
+    //                 return setDoc(userRef, {
+    //                     firstName: firstName,
+    //                     lastName: lastName,
+    //                     email: email
+    //                 });
+    //             })
+    //             .then(() => {
+    //                 Alert.alert('Registration Successful', 'You have registered successfully!');
+    //                 navigation.navigate('LoginScreen');
+    //             })
+    //             .catch((error) => {
+    //                 console.log(error);
+    //                 Alert.alert('Registration Failed', error.message);
+    //             });
+    //     } else {
+    //         Alert.alert('Input Required', 'Please fill all fields.');
+    //     }
+    // };
+
+    const handleSignUp = async () => {
+        try {
+            await signUp(email, password, firstName, lastName);
+            Alert.alert('Registration Successful', 'You have registered successfully!');
+            navigation.navigate('LoginScreen');
+        } catch (error) {
+            Alert.alert('Registration Failed', error.message);
         }
     };
 

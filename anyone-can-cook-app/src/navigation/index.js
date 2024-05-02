@@ -11,15 +11,30 @@ import { Entypo, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
 import LoginScreen from '../screens/authScreens/LoginScreen';
 import RegisterScreen from '../screens/authScreens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import { useAuthContext } from './AuthContext';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
+
+    const { dbUser, authUser } = useAuthContext();
+
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="LoginScreen" component={LoginScreen} />
-            <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
-            <Stack.Screen name='HomeTabs' component={HomeTabs} />
+            {authUser ? (
+                <>
+                    {dbUser ? (
+                        <Stack.Screen name="HomeTabs" component={HomeTabs} />
+                    ) : (
+                        <Stack.Screen name="Profile" component={ProfileScreen} initialParams={{ fromLogin: true }} />
+                    )}
+                </>
+            ) : (
+                <>
+                    <Stack.Screen name="LoginScreen" component={LoginScreen} />
+                    <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+                </>
+            )}
         </Stack.Navigator>
     )
 }

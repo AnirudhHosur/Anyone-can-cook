@@ -4,53 +4,110 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../../services/config'
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
+import { useAuthContext } from '../../navigation/AuthContext';
 
 const ProfileScreen = () => {
 
-    const [user, setUser] = useState(null);
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [address, setAddress] = useState('');
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
+    const navigation = useNavigation();
+
+    const { uid, dbUser, setDbUser } = useAuthContext();
 
     useEffect(() => {
-        const fetchUserProfile = async () => {
-            const user = auth.currentUser;
-            if (user) {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const userData = docSnap.data();
-                    setFirstName(userData.firstName);
-                    setLastName(userData.lastName);
-                    setAddress(userData.address);
-                    setLat(userData.lat?.toString());
-                    setLng(userData.lng?.toString());
-                }
-                setUser(user);
-            }
-        };
-        fetchUserProfile();
-    }, []);
+        if (dbUser) {
+            setFirstName(dbUser.firstName || '');
+            setLastName(dbUser.lastName || '');
+            setAddress(dbUser.address || '');
+            setLat(dbUser.lat ? String(dbUser.lat) : '');
+            setLng(dbUser.lng ? String(dbUser.lng) : '');
+        }
+    }, [dbUser]);
 
     const onSave = async () => {
-        if (user) {
+        if (dbUser) {
+            await updateUser()
+        } else {
+            await createUser()
+        }
+        navigation.goBack();
+    };
+
+    const updateUser = async () => {
+        if (!uid) {
+            Alert.alert("Error", "No user ID found");
+            return;
+        }
+
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        if (isNaN(latitude) || isNaN(longitude)) {
+            Alert.alert("Invalid Input", "Please enter valid latitude and longitude values.");
+            return;
+        }
+
+        // Construct updated data object
+        const updatedData = {
+            firstName,
+            lastName,
+            address,
+            lat: latitude,
+            lng: longitude
+        };
+
+        // Check if there are any changes compared to existing dbUser data
+        const hasChanges = Object.keys(updatedData).some(key => dbUser[key] !== updatedData[key]);
+
+        if (hasChanges) {
             try {
-                const userRef = doc(db, 'users', user.uid);
-                await setDoc(userRef, {
-                    firstName,
-                    lastName,
-                    address,
-                    lat: parseFloat(lat),
-                    lng: parseFloat(lng)
-                }, { merge: true });
-                Alert.alert('Profile Updated', 'Your profile has been successfully updated.');
+                // Update the data in Firestore
+                await setDoc(doc(db, "users", uid), updatedData, { merge: true });
+                setDbUser(updatedData);
+                Alert.alert("Success", "Profile updated successfully!");
             } catch (error) {
-                Alert.alert('Error', error.message);
+                console.error("Error updating document: ", error);
+                Alert.alert("Error", "There was a problem updating your profile.");
             }
+        } else {
+            Alert.alert("Info", "No changes to update.");
         }
     };
+
+    const createUser = async () => {
+        if (!uid) {
+            Alert.alert("Error", "No user ID found");
+            return;
+        }
+
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        if (isNaN(latitude) || isNaN(longitude)) {
+            Alert.alert("Invalid Input", "Please enter valid latitude and longitude values.");
+            return;
+        }
+
+        const userData = {
+            id: uid,
+            firstName,
+            lastName,
+            address,
+            lat: latitude,
+            lng: longitude
+        };
+
+        try {
+            // Save the data to Firestore
+            await setDoc(doc(db, "users", uid), userData);
+            setDbUser(userData);
+            Alert.alert("Success", "Profile saved successfully!");
+        } catch (error) {
+            console.error("Error saving document: ", error);
+            Alert.alert("Error", "There was a problem saving your profile.");
+        }
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -94,7 +151,7 @@ const ProfileScreen = () => {
                 onPress={() => {
                     auth.signOut();
                     Alert.alert('Log out Successful', 'You have successfully logged out!');
-                    navigation.navigate('LoginScreen');
+                    //navigation.navigate('LoginScreen');
                 }}
                 style={styles.signOut}
             >

@@ -1,15 +1,24 @@
-import { FlatList, Image, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import restaurants from '../../../assets/data/restaurants.json'
 import { useBasketContext } from '../../navigation/BasketContext';
 import BasketDishItem from '../../components/BasketDishItem';
+import { useOrderContext } from '../../navigation/OrderContext';
+import { useNavigation } from '@react-navigation/native';
 
 //const restaurant = restaurants[0]
 
 const Basket = () => {
 
-    const { restaurant, basketDishes, totalPrice } = useBasketContext();
-    const deliveryFee = restaurant.deliveryFee || 0;
-    const finalTotal = totalPrice + deliveryFee;
+    const { restaurant, basketDishes, price } = useBasketContext();
+    const finalTotal = price + restaurant.deliveryFee;
+
+    const { createOrder } = useOrderContext();
+    const navigation = useNavigation();
+
+    const onCreateOrder = async () => {
+        await createOrder();
+        navigation.goBack();
+    }
 
     return (
         <View style={styles.page}>
@@ -24,14 +33,14 @@ const Basket = () => {
             <View style={styles.separator} />
 
             <View style={{ paddingHorizontal: 10 }}>
-                <Text style={styles.totalLabel}>Total Price: ${totalPrice.toFixed(2)}</Text>
-                <Text style={styles.totalLabel}>Delivery Fee: ${deliveryFee.toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Total Price: ${price.toFixed(2)}</Text>
+                <Text style={styles.totalLabel}>Delivery Fee: ${restaurant.deliveryFee.toFixed(2)}</Text>
                 <Text style={styles.totalLabel}>Final Total: ${finalTotal.toFixed(2)}</Text>
             </View>
 
-            <View style={styles.button}>
+            <Pressable onPress={onCreateOrder} style={styles.button}>
                 <Text style={styles.buttonText}>Create Order </Text>
-            </View>
+            </Pressable>
         </View>
     );
 }

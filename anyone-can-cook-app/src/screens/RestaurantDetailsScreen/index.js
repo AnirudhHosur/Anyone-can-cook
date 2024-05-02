@@ -4,7 +4,6 @@ import DishListItem from '../../components/DishListItem';
 import styles from './styles';
 import RestaurantHeader from './header';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { fetchRestaurants, fetchDishes } from '../../services/firebaseServices';
 import { useEffect, useState } from 'react';
 import { useBasketContext } from '../../navigation/BasketContext';
 
@@ -63,7 +62,9 @@ export const RestaurantDetailsScreen = () => {
             />
             {
                 basket && <Pressable onPress={() => navigation.navigate("Basket")} style={styles.button}>
-                    <Text style={styles.buttonText}>Open Basket • ({basketDishes.length})</Text>
+                    <Text style={styles.buttonText}>
+                        Open Basket • ({basketDishes.length})
+                    </Text>
                 </Pressable>
             }
         </View>
