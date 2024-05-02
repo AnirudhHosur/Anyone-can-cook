@@ -6,6 +6,7 @@ import RestaurantHeader from './header';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { useBasketContext } from '../../navigation/BasketContext';
+import { fetchRestaurants, fetchDishes } from '../../services/firebaseServices'
 
 export const RestaurantDetailsScreen = () => {
 
