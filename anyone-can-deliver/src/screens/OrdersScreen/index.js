@@ -1,18 +1,39 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, Dimensions, useWindowDimensions } from "react-native";
-import BottomSheet, { BottomSheetFlatList, BottomSheetView } from '@gorhom/bottom-sheet';
-import orders from '../../../assets/data/orders.json'
+import { View, Text, useWindowDimensions } from "react-native";
+import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
+import { auth, db } from "../../services/config";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import OrderItem from "../../components/OrderItem";
-import MapView, { Marker } from 'react-native-maps'
+import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { Entypo } from '@expo/vector-icons'
+import { Entypo } from '@expo/vector-icons';
 
 const OrdersScreen = () => {
-
+    const [orders, setOrders] = useState([]);
     const [locationPermission, setLocationPermission] = useState(false);
     const bottomSheetRef = useRef(null);
     const { width, height } = useWindowDimensions();
-    const snapPoints = useMemo(() => ["12%", "90%"], [])
+    const snapPoints = useMemo(() => ["12%", "90%"], []);
+
+    const fetchOrders = async () => {
+        try {
+            const ordersQuery = query(collection(db, "orders"), where("status", "==", "READY_FOR_PICKUP"));
+            const querySnapshot = await getDocs(ordersQuery);
+            const fetchedOrders = [];
+            querySnapshot.forEach((doc) => {
+                fetchedOrders.push({ id: doc.id, ...doc.data() });
+            });
+            setOrders(fetchedOrders);
+        } catch (error) {
+            console.error("Error fetching orders: ", error);
+        }
+    };
+
+    useEffect(() => {
+        if (locationPermission) {
+            fetchOrders();
+        }
+    }, [locationPermission]);
 
     useEffect(() => {
         (async () => {
@@ -31,34 +52,31 @@ const OrdersScreen = () => {
 
     return (
         <View style={{ backgroundColor: 'lightblue', flex: 1 }}>
-            {
-                locationPermission ? (
-                    <MapView
-                        style={{ height: height, width: width }}
-                        showsUserLocation
-                        followsUserLocation
-                    >
-                        {
-                            orders.map((order) => (
-                                <Marker
-                                    key={order.id}
-                                    title={order.Restaurant.name}
-                                    description={order.Restaurant.address} coordinate={{
-                                        latitude: order.Restaurant.lat,
-                                        longitude: order.Restaurant.lng
-                                    }}
-                                >
-                                    <View style={{ backgroundColor: 'green', padding: 5, borderRadius: 20 }}>
-                                        <Entypo name="shop" size={24} color="white" />
-                                    </View>
-                                </Marker>
-                            ))
-                        }
-
-                    </MapView>
-                ) : (
-                    <Text>Requesting for location permission...</Text>
-                )}
+            {locationPermission ? (
+                <MapView
+                    style={{ height: height, width: width }}
+                    showsUserLocation
+                    followsUserLocation
+                >
+                    {orders.map((order) => (
+                        <Marker
+                            key={order.id}
+                            title={order.restaurant?.name || "Unknown Restaurant"}
+                            description={order.restaurant?.address || "No Address"}
+                            coordinate={{
+                                latitude: order.restaurant?.lat || 0,
+                                longitude: order.restaurant?.lng || 0
+                            }}
+                        >
+                            <View style={{ backgroundColor: 'green', padding: 5, borderRadius: 20 }}>
+                                <Entypo name="shop" size={24} color="white" />
+                            </View>
+                        </Marker>
+                    ))}
+                </MapView>
+            ) : (
+                <Text>Requesting for location permission...</Text>
+            )}
             <BottomSheet
                 ref={bottomSheetRef}
                 index={1}

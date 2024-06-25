@@ -2,40 +2,36 @@ import { useMemo, useRef, useEffect, useState } from "react";
 import BottomSheet, { BottomSheetFlatList, BottomSheetView } from '@gorhom/bottom-sheet';
 import { View, Text, useWindowDimensions, ActivityIndicator, Pressable, TouchableOpacity } from "react-native";
 import { FontAwesome5, Fontisto } from "@expo/vector-icons";
-import orders from '../../../assets/data/orders.json'
 import styles from "./styles";
 import MapView, { Marker } from 'react-native-maps'
 import * as Location from 'expo-location'
 import { Entypo } from '@expo/vector-icons'
 import MapViewDirections from "react-native-maps-directions";
-import { useNavigation } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
-
-const order = orders[0]
-
-const restaurantLocation = { latitude: order.Restaurant.lat, longitude: order.Restaurant.lng }
-const deliveryLocation = { latitude: order.User.lat, longitude: order.User.lng }
-
-const ORDER_STATUS = {
-    READY_FOR_PICKUP: "READY_FOR_PICKUP",
-    ACCEPETD: "ACCEPTED",
-    PICKED_UP: "PICKED_UP",
-    COMPLETED: "COMPLETED"
-}
+import { useNavigation, useRoute } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons"
+import { auth, db } from "../../services/config";
+import { useOrderContext } from "../../navigation/OrderContext";
 
 const OrderDeliveryScreen = () => {
-    const [driverLocation, setDriverLocation] = useState(null)
-    const [totalMinutes, setTotalMinutes] = useState(0)
-    const [totalKMs, setTotalKMs] = useState(0)
-
-    const [deliveryStatus, setDeliveryStatus] = useState(ORDER_STATUS.READY_FOR_PICKUP)
-    const mapRef = useRef(null)
+    const [driverLocation, setDriverLocation] = useState(null);
+    const [totalMinutes, setTotalMinutes] = useState(0);
+    const [totalKMs, setTotalKMs] = useState(0);
+    const mapRef = useRef(null);
     const [isDriverClose, setIsDriverClose] = useState(false);
-
     const bottomSheetRef = useRef(null);
-    const snapPoints = useMemo(() => ["12%", "95%"], [])
+    const snapPoints = useMemo(() => ["12%", "95%"], []);
     const { width, height } = useWindowDimensions();
     const navigation = useNavigation();
+    const route = useRoute();
+    const id = route.params?.id;
+
+    const { acceptOrder, order, user, dishes, fetchOrder, completeOrder, pickUpOrder } = useOrderContext();
+
+    useEffect(() => {
+        fetchOrder(id);
+    }, [id]);
+
+    console.log('Hey love', order)
 
     useEffect(() => {
         let foregroundSubscription;
@@ -76,28 +72,25 @@ const OrderDeliveryScreen = () => {
 
     }, []);
 
-    if (!driverLocation) {
-        return <ActivityIndicator size={"large"} />
-    }
-
-    const onButtonPressed = () => {
+    const onButtonPressed = async () => {
         bottomSheetRef.current?.collapse();
-        if (deliveryStatus === ORDER_STATUS.READY_FOR_PICKUP) {
+        if (order?.status === "READY_FOR_PICKUP") {
             mapRef.current.animateToRegion({
                 latitude: driverLocation.latitude,
                 longitude: driverLocation.longitude,
                 latitudeDelta: 0.01,
                 longitudeDelta: 0.01
             });
-            setDeliveryStatus(ORDER_STATUS.ACCEPETD);
+            acceptOrder();
         }
 
-        if (deliveryStatus === ORDER_STATUS.ACCEPETD) {
+        if (order?.status === "ACCEPETD") {
             bottomSheetRef.current?.collapse();
-            setDeliveryStatus(ORDER_STATUS.PICKED_UP)
+            pickUpOrder()
         }
 
-        if (deliveryStatus === ORDER_STATUS.PICKED_UP) {
+        if (order?.status === "PICKED_UP") {
+            await completeOrder()
             bottomSheetRef.current?.collapse();
             navigation.goBack();
             console.warn('Delivery Finished')
@@ -105,28 +98,35 @@ const OrderDeliveryScreen = () => {
     }
 
     const renderButtonTitle = () => {
-        if (deliveryStatus === ORDER_STATUS.READY_FOR_PICKUP) {
+        if (order?.status === "READY_FOR_PICKUP") {
             return 'Accept Order'
         }
-        if (deliveryStatus === ORDER_STATUS.ACCEPETD) {
+        if (order?.status === "ACCEPETD") {
             return 'Pick-up Order'
         }
-        if (deliveryStatus === ORDER_STATUS.PICKED_UP) {
+        if (order?.status === "PICKED_UP") {
             return 'Complete Delivery'
         }
     }
 
     const isButtonDisabled = () => {
-        if (deliveryStatus === ORDER_STATUS.READY_FOR_PICKUP) {
+        if (order?.status === "READY_FOR_PICKUP") {
             return false
         }
-        if (deliveryStatus === ORDER_STATUS.ACCEPETD && isDriverClose) {
+        if (order?.status === "ACCEPETD" && isDriverClose) {
             return false
         }
-        if (deliveryStatus === ORDER_STATUS.PICKED_UP && isDriverClose) {
+        if (order?.status === "PICKED_UP" && isDriverClose) {
             return false
         }
         return true;
+    }
+
+    const restaurantLocation = { latitude: order?.restaurant?.lat, longitude: order?.restaurant?.lng };
+    const deliveryLocation = { latitude: user?.lat, longitude: user?.lng };
+
+    if (!driverLocation || !order || !user) {
+        return <ActivityIndicator size={"large"} color="grey" />;
     }
 
     return (
@@ -145,12 +145,12 @@ const OrderDeliveryScreen = () => {
             >
                 <MapViewDirections
                     origin={driverLocation}
-                    destination={deliveryStatus === ORDER_STATUS.ACCEPETD ?
+                    destination={order?.status === "ACCEPETD" ?
                         restaurantLocation
                         : deliveryLocation
                     }
                     waypoints={
-                        deliveryStatus === ORDER_STATUS.READY_FOR_PICKUP ?
+                        order?.status === "READY_FOR_PICKUP" ?
                             [restaurantLocation]
                             : []}
                     strokeWidth={10}
@@ -164,9 +164,9 @@ const OrderDeliveryScreen = () => {
                 />
 
                 <Marker
-                    coordinate={{ latitude: order.Restaurant.lat, longitude: order.Restaurant.lng }}
-                    title={order.Restaurant.name}
-                    description={order.Restaurant.address}
+                    coordinate={{ latitude: order.restaurant.lat, longitude: order.restaurant.lng }}
+                    title={order.restaurant.name}
+                    description={order.restaurant.address}
                 >
                     <View style={{ backgroundColor: 'green', padding: 5, borderRadius: 20 }}>
                         <Entypo name="shop" size={24} color="white" />
@@ -174,9 +174,9 @@ const OrderDeliveryScreen = () => {
                 </Marker>
 
                 <Marker
-                    coordinate={{ latitude: order.User.lat, longitude: order.User.lng }}
-                    title={order.User.name}
-                    description={order.User.address}
+                    coordinate={deliveryLocation}
+                    title={user.firstName}
+                    description={user.address}
                 >
                     <View style={{ backgroundColor: 'green', padding: 5, borderRadius: 20 }}>
                         <Entypo name="cake" size={24} color="white" />
@@ -185,7 +185,7 @@ const OrderDeliveryScreen = () => {
 
             </MapView>
 
-            {order.status === "READY_FOR_PICKUP" && (
+            {order?.status === "READY_FOR_PICKUP" && (
                 <Ionicons
                     onPress={() => navigation.goBack()}
                     name="arrow-back-circle"
@@ -208,21 +208,22 @@ const OrderDeliveryScreen = () => {
                 </View>
 
                 <View style={styles.deliveryDetailsContainer}>
-                    <Text style={styles.restaurantName}>{order.Restaurant.name}</Text>
+                    <Text style={styles.restaurantName}>{order.restaurant.name}</Text>
                     <View style={styles.adressContainer}>
                         <Fontisto name="shopping-store" size={22} color="grey" />
-                        <Text style={styles.adressText}>{order.Restaurant.address}</Text>
+                        <Text style={styles.adressText}>{order.restaurant.address}</Text>
                     </View>
                     <View style={styles.adressContainer}>
                         <FontAwesome5 name="map-marker-alt" size={30} color="grey" />
-                        <Text style={styles.adressText}>{order.User.address}</Text>
+                        <Text style={styles.adressText}>{user.address}</Text>
                     </View>
 
                     <View style={styles.orderDetailsContainer}>
-                        <Text style={styles.orderItemText}>Onion Rings x1</Text>
-                        <Text style={styles.orderItemText}>Dosa x1</Text>
-                        <Text style={styles.orderItemText}>Potatoes x1</Text>
-                        <Text style={styles.orderItemText}>Water x1</Text>
+                        {
+                            dishes.map((item) => (
+                                <Text key={item.id} style={styles.orderItemText}>{item.dish.name} x{item.quantity}</Text>
+                            ))
+                        }
                     </View>
                 </View>
                 <TouchableOpacity
