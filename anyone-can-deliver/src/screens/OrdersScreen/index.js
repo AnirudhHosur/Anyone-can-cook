@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, useWindowDimensions } from "react-native";
 import BottomSheet, { BottomSheetFlatList } from '@gorhom/bottom-sheet';
-import { auth, db } from "../../services/config";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import OrderItem from "../../components/OrderItem";
-import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-import { Entypo } from '@expo/vector-icons';
+import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Text, View, useWindowDimensions, ActivityIndicator } from "react-native";
+import MapView from 'react-native-maps';
+import OrderItem from "../../components/OrderItem";
 import CustomMarker from "../../components/OrderItem/CustomMarker/CustomMarker";
+import { db } from "../../services/config";
 
 const OrdersScreen = () => {
     const [orders, setOrders] = useState([]);
@@ -15,24 +14,27 @@ const OrdersScreen = () => {
     const bottomSheetRef = useRef(null);
     const { width, height } = useWindowDimensions();
     const snapPoints = useMemo(() => ["12%", "90%"], []);
+    const [driverLocation, setDriverLocation] = useState(null);
 
-    const fetchOrders = async () => {
-        try {
-            const ordersQuery = query(collection(db, "orders"), where("status", "==", "READY_FOR_PICKUP"));
-            const querySnapshot = await getDocs(ordersQuery);
+    const fetchOrders = () => {
+        const ordersQuery = query(collection(db, "orders"), where("status", "==", "READY_FOR_PICKUP"));
+        const unsubscribe = onSnapshot(ordersQuery, (querySnapshot) => {
             const fetchedOrders = [];
             querySnapshot.forEach((doc) => {
                 fetchedOrders.push({ id: doc.id, ...doc.data() });
             });
             setOrders(fetchedOrders);
-        } catch (error) {
+        }, (error) => {
             console.error("Error fetching orders: ", error);
-        }
+        });
+
+        return unsubscribe;
     };
 
     useEffect(() => {
         if (locationPermission) {
-            fetchOrders();
+            const unsubscribe = fetchOrders();
+            return () => unsubscribe(); // Cleanup subscription on unmount
         }
     }, [locationPermission]);
 
@@ -51,6 +53,26 @@ const OrdersScreen = () => {
         setLocationPermission(true);
     };
 
+    useEffect(() => {
+        (async () => {
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (!status === "granted") {
+                console.log("Nonono");
+                return;
+            }
+
+            let location = await Location.getCurrentPositionAsync();
+            setDriverLocation({
+                latitude: location.coords.latitude,
+                longitude: location.coords.longitude,
+            });
+        })();
+    }, []);
+
+    if (!driverLocation) {
+        return <ActivityIndicator size={"large"} color="grey" />;
+    }
+
     return (
         <View style={{ backgroundColor: 'lightblue', flex: 1 }}>
             {locationPermission ? (
@@ -58,6 +80,12 @@ const OrdersScreen = () => {
                     style={{ height: height, width: width }}
                     showsUserLocation
                     followsUserLocation
+                    initialRegion={{
+                        latitude: driverLocation.latitude,
+                        longitude: driverLocation.longitude,
+                        latitudeDelta: 0.1,
+                        longitudeDelta: 0.1
+                    }}
                 >
                     {orders.map((order) => (
                         <CustomMarker key={order.id} data={order.restaurant} type="RESTAURANT" />

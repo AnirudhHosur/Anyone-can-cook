@@ -6,11 +6,16 @@ import { AuthContext } from "./AuthContext";
 import SignInScreen from "../screens/AuthScreens/SignInScreen";
 import SignUpScreen from "../screens/AuthScreens/SignUpScreen";
 import ProfileScreen from '../screens/ProfileScreen';
+import { ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 const Navigation = () => {
     const { authUser, dbCourier } = useContext(AuthContext);
+
+    // if (dbCourier === null) {
+    //     return <ActivityIndicator size={"large"} color="grey" />;
+    // }
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>

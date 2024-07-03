@@ -1,14 +1,18 @@
-import { useRef, useEffect, useState } from "react";
-import { View, useWindowDimensions, ActivityIndicator } from "react-native";
-import styles from "./styles";
-import MapView from 'react-native-maps'
-import * as Location from 'expo-location'
-import MapViewDirections from "react-native-maps-directions";
+import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons"
+import * as Location from 'expo-location';
+import { useContext, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, View, useWindowDimensions } from "react-native";
+import MapView from 'react-native-maps';
+import MapViewDirections from "react-native-maps-directions";
+import CustomMarker from "../../components/OrderItem/CustomMarker/CustomMarker";
 import { useOrderContext } from "../../navigation/OrderContext";
 import BottomSheetDetails from "./BottomSheetDetails";
-import CustomMarker from "../../components/OrderItem/CustomMarker/CustomMarker";
+import styles from "./styles";
+import { AuthContext } from "../../navigation/AuthContext";
+import { doc, updateDoc } from "firebase/firestore";
+import { db } from "../../services/config";
+import { GOOGLE_MAPS_API_KEY } from '@env';
 
 const OrderDeliveryScreen = () => {
     const [driverLocation, setDriverLocation] = useState(null);
@@ -19,12 +23,31 @@ const OrderDeliveryScreen = () => {
     const navigation = useNavigation();
     const route = useRoute();
     const id = route.params?.id;
-
+    const { dbCourier } = useContext(AuthContext);
     const { acceptOrder, order, user, dishes, fetchOrder, completeOrder, pickUpOrder } = useOrderContext();
 
     useEffect(() => {
         fetchOrder(id);
     }, [id]);
+
+    useEffect(() => {
+        if (!driverLocation) {
+            return;
+        }
+        // Save to Firestore
+        const updateCourierLocation = async () => {
+            try {
+                const courierRef = doc(db, "courier", dbCourier.id);
+                await updateDoc(courierRef, {
+                    lat: driverLocation.latitude,
+                    lng: driverLocation.longitude,
+                });
+            } catch (error) {
+                console.error("Error updating location: ", error);
+            }
+        };
+        updateCourierLocation();
+    }, [driverLocation, dbCourier.id]);
 
     useEffect(() => {
         let foregroundSubscription;
@@ -107,7 +130,7 @@ const OrderDeliveryScreen = () => {
                             : []}
                     strokeWidth={10}
                     strokeColor="#3FC060"
-                    apikey={"AIzaSyCKdT7qr19cJyG3cFR7jdjNzdKGdiOYxlk"}
+                    apikey={GOOGLE_MAPS_API_KEY}
                     onReady={(result) => {
                         setTotalMinutes(result.duration)
                         setTotalKMs(result.distance)
