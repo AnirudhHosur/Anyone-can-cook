@@ -21,7 +21,6 @@ const OrderContextProvider = ({ children }) => {
                 const fetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setOrders(fetchedOrders);
             }
-            console.log('In here man', orders)
         };
 
         fetchOrders();
@@ -41,7 +40,6 @@ const OrderContextProvider = ({ children }) => {
                 totalPrice: price + (restaurant.deliveryFee || 0),
             };
 
-            console.log('Golmal', orderData)
             const orderDocRef = await addDoc(collection(db, "orders"), orderData);
 
             const orderDishesPromises = basketDishes.map(basketDish =>
@@ -59,17 +57,28 @@ const OrderContextProvider = ({ children }) => {
 
             const basketDishQuery = query(collection(db, "basketDish"), where("basketId", "==", basket.id));
             const basketDishSnapshot = await getDocs(basketDishQuery);
-            const basketDishDeletePromises = basketDishSnapshot.docs.map(dishDoc =>
-                deleteDoc(doc(db, "basketDish", dishDoc.id)).catch(err => {
-                    console.error("Failed to delete BasketDish:", err);
-                    throw err; // Re-throw to handle at a higher level if necessary
-                })
-            );
 
-            await Promise.all(basketDishDeletePromises);
+            if (basketDishSnapshot.empty) {
+                console.log("No basketDish documents found for the basket ID:", basket.id);
+            } else {
+                const basketDishDeletePromises = basketDishSnapshot.docs.map(dishDoc =>
+                    deleteDoc(doc(db, "basketDish", dishDoc.id)).catch(err => {
+                        console.error("Failed to delete BasketDish:", err);
+                        throw err; // Re-throw to handle at a higher level if necessary
+                    })
+                );
+
+                await Promise.all(basketDishDeletePromises);
+                console.log("BasketDish documents deleted successfully.");
+            }
+
             await deleteDoc(doc(db, "basket", basket.id));
+            console.log("Basket document deleted successfully.");
 
             setOrders(prevOrders => [...prevOrders, { ...orderData, id: orderDocRef.id }]);
+
+            // Clear the basket context after order creation
+            useBasketContext().clearBasket();
 
         } catch (error) {
             console.error("Failed to complete order process:", error);

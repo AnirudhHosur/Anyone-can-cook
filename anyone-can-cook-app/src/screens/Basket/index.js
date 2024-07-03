@@ -17,7 +17,7 @@ const Basket = () => {
 
     const onCreateOrder = async () => {
         await createOrder();
-        navigation.goBack();
+        navigation.navigate("HomeTabs", { screen: "Orders Tab" });
     }
 
     return (
