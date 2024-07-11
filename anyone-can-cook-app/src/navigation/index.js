@@ -1,17 +1,17 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Basket from '../screens/Basket';
+import DishDetailsScreen from '../screens/DishDetailsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import OrderScreen from '../screens/OrdersScreen';
-import OrderDetails from '../screens/OrderDetailsScreen';
 import { RestaurantDetailsScreen } from '../screens/RestaurantDetailsScreen';
-import DishDetailsScreen from '../screens/DishDetailsScreen';
-import Basket from '../screens/Basket';
 //import { createMaterialBottomTabNavigator } from 'react-native-paper/lib/typescript/react-navigation';
-import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import { Entypo, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
+import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LoginScreen from '../screens/authScreens/LoginScreen';
 import RegisterScreen from '../screens/authScreens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { useAuthContext } from './AuthContext';
+import OrderDetailsNavigator from './OrderDetailsNavigator';
 
 const Stack = createNativeStackNavigator();
 
@@ -92,7 +92,7 @@ const OrderStackNavigator = () => {
     return (
         <OrdersStack.Navigator>
             <OrdersStack.Screen name='Orders' component={OrderScreen} options={{ headerTitleAlign: 'center' }} />
-            <OrdersStack.Screen name='Order' component={OrderDetails} options={{ headerTitleAlign: 'center' }} />
+            <OrdersStack.Screen name='Order' component={OrderDetailsNavigator} options={{ headerTitleAlign: 'center', headerShown: 'false' }} />
         </OrdersStack.Navigator>
     )
 }

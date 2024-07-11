@@ -1,10 +1,7 @@
-import { Image, StyleSheet, FlatList, View, Text, ActivityIndicator } from 'react-native';
-import OrderListItem from '../../components/OrderListItem';
-import DishListItem from '../../components/DishListItem';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, View } from 'react-native';
 import BasketDishItem from '../../components/BasketDishItem';
 import { useOrderContext } from '../../navigation/OrderContext';
-import { useEffect, useState } from 'react';
-import { useRoute } from '@react-navigation/native';
 
 const OrderDetailsHeader = ({ order }) => {
 
@@ -28,12 +25,12 @@ const OrderDetailsHeader = ({ order }) => {
     )
 }
 
-const OrderDetails = () => {
+const OrderDetails = ({ id }) => {
 
     const [order, setOrder] = useState();
     const { getOrder } = useOrderContext();
-    const route = useRoute();
-    const id = route.params?.id;
+    // const route = useRoute();
+    // const id = route.params?.id;
 
     useEffect(() => {
         getOrder(id).then(setOrder)

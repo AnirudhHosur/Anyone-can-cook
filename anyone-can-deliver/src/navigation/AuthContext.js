@@ -31,7 +31,6 @@ const AuthProvider = ({ children }) => {
         const fetchCourier = async () => {
             try {
                 if (uid) {
-                    console.log('Bro')
                     const courierDoc = doc(db, "courier", uid);
                     const docSnap = await getDoc(courierDoc);
 
