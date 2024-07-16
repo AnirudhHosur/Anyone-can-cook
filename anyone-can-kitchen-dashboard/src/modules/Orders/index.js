@@ -1,18 +1,30 @@
 import { Card, Table, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../../services/config";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../services/config";
+import { useRestaurantContext } from "../../contexts/RestaurantContext";
 
 const Orders = () => {
     const navigate = useNavigate();
     const [ordersData, setOrdersData] = useState([]);
+    const { restaurantDocRefId } = useRestaurantContext();
 
     useEffect(() => {
         const fetchOrders = async () => {
+            if (!restaurantDocRefId) {
+                console.warn('Restaurant.id is not defined');
+                return;
+            }
+
             try {
                 const ordersCollection = collection(db, "orders");
-                const querySnapshot = await getDocs(ordersCollection);
+                const q = query(
+                    ordersCollection,
+                    where("restaurant.id", "==", restaurantDocRefId),
+                    where("status", "in", ["NEW", "COOKING", "READY_FOR_PICKUP", "ACCEPTED"])
+                );
+                const querySnapshot = await getDocs(q);
                 const fetchedOrders = [];
                 querySnapshot.forEach((doc) => {
                     fetchedOrders.push({ ...doc.data(), orderId: doc.id });
@@ -24,31 +36,29 @@ const Orders = () => {
         };
 
         fetchOrders();
-    }, []); // Empty dependency array ensures useEffect runs only once on mount
-
-    console.log('Hey', ordersData)
+    }, [restaurantDocRefId]);
 
     const renderOrderStatus = (orderStatus) => {
         const statusToColor = {
-          ["NEW"]: "green",
-          ["COOKING"]: "orange",
-          ["READY_FOR_PICKUP"]: "red",
-          ["ACCEPTED"]: "purple",
+            NEW: "green",
+            COOKING: "orange",
+            READY_FOR_PICKUP: "red",
+            ACCEPTED: "purple",
         };
-    
+
         return <Tag color={statusToColor[orderStatus]}>{orderStatus}</Tag>;
-      };
+    };
 
     const tableColumns = [
         {
             title: "Order ID",
-            dataIndex: "id",
-            key: "id",
+            dataIndex: "orderId",
+            key: "orderId",
         },
         {
-            title: "Delivery Address",
-            dataIndex: "deliveryAddress",
-            key: "deliveryAddress",
+            title: "Created At",
+            dataIndex: "createdAt",
+            key: "createdAt",
         },
         {
             title: "Price",
@@ -69,6 +79,7 @@ const Orders = () => {
             <Table
                 dataSource={ordersData}
                 columns={tableColumns}
+                rowClassName="custom-row-hover"
                 rowKey="orderId"
                 onRow={(orderItem) => ({
                     onClick: () => navigate(`order/${orderItem.orderId}`),

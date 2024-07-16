@@ -67,13 +67,16 @@ const Settings = () => {
             };
 
             const docRef = await addDoc(collection(db, "restaurants"), newRestaurant);
+            const docId = docRef.id;  // Get the ID of the new document
 
-            const newRestaurantWithId = { ...newRestaurant, id: docRef.id };
+            console.log("Restaurant ID:", docId); // Log the ID of the document
+
+            const newRestaurantWithId = { ...newRestaurant, id: docId };
             setRestaurant(newRestaurantWithId);
 
-            setName(""); // Clear the name field
-            setAddress(null); // Clear the address field
-            setCoordinates(null); // Clear the coordinates
+            setName("");
+            setAddress(null);
+            setCoordinates(null);
             message.success("Restaurant saved successfully!");
 
         } catch (error) {

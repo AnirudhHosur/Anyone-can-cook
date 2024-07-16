@@ -22,3 +22,7 @@ li.ant-pagination-item-active a {
 .ant-menu-item-active {
   color: #3fc060 !important;
 }
+
+.custom-row-hover:hover td {
+  background: rgb(20, 170, 70);
+}

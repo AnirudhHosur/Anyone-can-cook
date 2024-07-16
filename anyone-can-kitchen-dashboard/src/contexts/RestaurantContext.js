@@ -8,12 +8,15 @@ const RestaurantContext = createContext({});
 const RestaurantContextProvider = ({ children }) => {
     const { user } = useAuth();
     const loggedInUserId = user?.uid;
-    const [restaurant, setRestaurant] = useState(null); // Initialize with null to handle loading state
+    const [restaurant, setRestaurant] = useState(null);
+    const [restaurantDocRefId, setRestaurantDocRefId] = useState(null);
 
     useEffect(() => {
         const fetchRestaurant = async () => {
+            // Reset restaurant and it's doc ref state if user is not logged in
             if (!loggedInUserId) {
-                setRestaurant(null); // Reset restaurant state if user is not logged in
+                setRestaurant(null);
+                setRestaurantDocRefId(null);
                 return;
             }
 
@@ -22,14 +25,19 @@ const RestaurantContextProvider = ({ children }) => {
                 const querySnapshot = await getDocs(q);
                 if (!querySnapshot.empty) {
                     // Set the first restaurant found for the user
-                    setRestaurant(querySnapshot.docs[0].data());
+                    const restaurantData = querySnapshot.docs[0].data();
+                    const restaurantId = querySnapshot.docs[0].id;
+                    setRestaurant({ ...restaurantData, id: restaurantId });
+                    setRestaurantDocRefId(restaurantId);
                 } else {
                     console.log("No restaurant found for this adminId");
-                    setRestaurant(null); // Set to null if no restaurant is found
+                    setRestaurant(null);
+                    setRestaurantDocRefId(null);
                 }
             } catch (error) {
                 console.error("Error fetching restaurant:", error);
-                setRestaurant(null); // Set to null on error
+                setRestaurant(null);
+                setRestaurantDocRefId(null);
             }
         };
 
@@ -37,7 +45,7 @@ const RestaurantContextProvider = ({ children }) => {
     }, [loggedInUserId]);
 
     return (
-        <RestaurantContext.Provider value={{ restaurant, setRestaurant }}>
+        <RestaurantContext.Provider value={{ restaurant, setRestaurant, restaurantDocRefId }}>
             {children}
         </RestaurantContext.Provider>
     );

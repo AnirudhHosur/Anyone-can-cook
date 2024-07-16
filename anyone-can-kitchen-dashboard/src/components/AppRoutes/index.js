@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import Orders from "../../modules/DetailedOrder/Orders";
+import Orders from "../../modules/Orders";
 import RestaurantMenu from "../../modules/RestaurantMenu";
 import CreateMenuItem from "../../modules/CreateMenuItem";
 import OrderHistory from "../../modules/OrderHistory";
