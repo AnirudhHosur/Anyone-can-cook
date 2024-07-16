@@ -2,12 +2,12 @@ import React, { useState } from "react";
 import { Form, Input, Button, message } from "antd";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../services/config";
-import { useNavigation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const navigate = useNavigation();
+    const navigate = useNavigate();
 
     const handleSignUp = async () => {
         try {
