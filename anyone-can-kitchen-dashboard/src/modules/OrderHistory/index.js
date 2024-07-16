@@ -22,7 +22,7 @@ const OrderHistory = () => {
                 const q = query(
                     ordersCollection,
                     where("restaurant.id", "==", restaurantDocRefId),
-                    where("status", "in", ["PICKED_UP", "COMPLETED", "DECLINED_BY_RESTAURANT"])
+                    where("status", "in", ["PICKED_UP", "COMPLETED", "DECLINED"])
                 );
                 const querySnapshot = await getDocs(q);
                 const fetchedOrders = [];

@@ -1,7 +1,7 @@
-import { Button, Card, Descriptions, Divider, List, Avatar } from "antd";
+import { Button, Card, Descriptions, Divider, List, Avatar, Tag } from "antd";
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../../services/config";
 
 const DetailedOrder = () => {
@@ -67,15 +67,56 @@ const DetailedOrder = () => {
         fetchDishes();
     }, [id]);
 
+    const updateOrderStatus = async (newStatus) => {
+        try {
+            const orderDocRef = doc(db, "orders", id);
+            await updateDoc(orderDocRef, { status: newStatus });
+            setOrder((prevOrder) => ({
+                ...prevOrder,
+                status: newStatus,
+            }));
+        } catch (error) {
+            console.error("Error updating order status:", error);
+        }
+    };
+
+    const renderActionButtons = () => {
+        switch (order?.status) {
+            case "NEW":
+                return (
+                    <>
+                        <Button block type="primary" danger style={styles.button} onClick={() => updateOrderStatus("DECLINED")}>
+                            Decline Order
+                        </Button>
+                        <Button block type="primary" style={styles.button} onClick={() => updateOrderStatus("COOKING")}>
+                            Accept Order
+                        </Button>
+                    </>
+                );
+            case "COOKING":
+                return (
+                    <Button block type="primary" onClick={() => updateOrderStatus("READY_FOR_PICKUP")}>
+                        Food is Done
+                    </Button>
+                );
+            default:
+                return null;
+        }
+    };
+
     if (!order) {
         return <div>Loading...</div>;
     }
 
     return (
-        <Card title={`Order ${id}`} style={{ margin: 20 }}>
+        <Card title={<Tag color={statusToColor[order.status]}>{`${order.status} Order`}</Tag>} style={{ margin: 20 }}>
             <Descriptions bordered column={1}>
-                <Descriptions.Item label="Customer">{customer ? customer.firstName : "Loading..."}</Descriptions.Item>
-                <Descriptions.Item label="Customer Address">{customer ? customer.address : "Loading..."}</Descriptions.Item>
+                <Descriptions.Item label="Customer">
+                    {customer ? customer.firstName : "Loading..."}
+                </Descriptions.Item>
+                <Descriptions.Item label="Customer Address">
+                    {customer ? customer.address : "Loading..."}
+                </Descriptions.Item>
             </Descriptions>
             <Divider />
 
@@ -110,12 +151,17 @@ const DetailedOrder = () => {
             <Divider />
 
             <div style={styles.buttonsContainer}>
-                <Button block type="primary" danger style={styles.button}>Decline Order</Button>
-                <Button block type="primary" style={styles.button}>Accept Order</Button>
+                {renderActionButtons()}
             </div>
-            <Button block type="primary">Food is Done</Button>
         </Card>
     );
+};
+
+const statusToColor = {
+    NEW: "green",
+    COOKING: "orange",
+    READY_FOR_PICKUP: "red",
+    ACCEPTED: "purple",
 };
 
 const styles = {
