@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Button, Alert } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { auth, db } from '../../services/config'
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../services/config';
+import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../navigation/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const ProfileScreen = () => {
-
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [address, setAddress] = useState('');
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
     const navigation = useNavigation();
-
     const { uid, dbUser, setDbUser } = useAuthContext();
 
     useEffect(() => {
@@ -29,9 +28,9 @@ const ProfileScreen = () => {
 
     const onSave = async () => {
         if (dbUser) {
-            await updateUser()
+            await updateUser();
         } else {
-            await createUser()
+            await createUser();
         }
         navigation.goBack();
     };
@@ -49,21 +48,18 @@ const ProfileScreen = () => {
             return;
         }
 
-        // Construct updated data object
         const updatedData = {
             firstName,
             lastName,
             address,
             lat: latitude,
-            lng: longitude
+            lng: longitude,
         };
 
-        // Check if there are any changes compared to existing dbUser data
-        const hasChanges = Object.keys(updatedData).some(key => dbUser[key] !== updatedData[key]);
+        const hasChanges = Object.keys(updatedData).some((key) => dbUser[key] !== updatedData[key]);
 
         if (hasChanges) {
             try {
-                // Update the data in Firestore
                 await setDoc(doc(db, "users", uid), updatedData, { merge: true });
                 setDbUser(updatedData);
                 Alert.alert("Success", "Profile updated successfully!");
@@ -95,11 +91,10 @@ const ProfileScreen = () => {
             lastName,
             address,
             lat: latitude,
-            lng: longitude
+            lng: longitude,
         };
 
         try {
-            // Save the data to Firestore
             await setDoc(doc(db, "users", uid), userData);
             setDbUser(userData);
             Alert.alert("Success", "Profile saved successfully!");
@@ -107,7 +102,7 @@ const ProfileScreen = () => {
             console.error("Error saving document: ", error);
             Alert.alert("Error", "There was a problem saving your profile.");
         }
-    }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -146,17 +141,20 @@ const ProfileScreen = () => {
                     style={styles.input}
                 />
             </View>
-            <Button onPress={onSave} title="Save" />
-            <Text
+            <TouchableOpacity onPress={onSave} style={styles.saveButton}>
+                <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
                 onPress={() => {
                     auth.signOut();
                     Alert.alert('Log out Successful', 'You have successfully logged out!');
-                    //navigation.navigate('LoginScreen');
+                    navigation.navigate('LoginScreen');
                 }}
-                style={styles.signOut}
+                style={styles.signOutButton}
             >
-                Sign out
-            </Text>
+                <Text style={styles.signOutButtonText}>Sign out</Text>
+                <Ionicons name="log-out-outline" size={20} color="red" />
+            </TouchableOpacity>
         </SafeAreaView>
     );
 };
@@ -166,30 +164,50 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingHorizontal: 20,
         paddingTop: 20,
-        backgroundColor: '#fff',
+        backgroundColor: '#f7f7f7',
     },
     title: {
-        fontSize: 24,
+        fontSize: 28,
         fontWeight: 'bold',
         textAlign: 'center',
-        marginBottom: 20,
+        marginBottom: 30,
+        color: '#333',
     },
     inputContainer: {
         marginBottom: 20,
     },
     input: {
-        marginBottom: 10,
-        backgroundColor: '#f0f0f0',
+        marginBottom: 15,
+        backgroundColor: '#fff',
         paddingVertical: 15,
         paddingHorizontal: 20,
-        borderRadius: 5,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#ddd',
     },
-    signOut: {
-        textAlign: 'center',
-        color: 'red',
+    saveButton: {
+        backgroundColor: '#007bff',
+        padding: 15,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    signOutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: 20,
+    },
+    signOutButtonText: {
+        color: 'red',
         fontSize: 16,
-    }
+        marginRight: 5,
+    },
 });
 
 export default ProfileScreen;

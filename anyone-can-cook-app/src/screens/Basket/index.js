@@ -1,15 +1,12 @@
-import { FlatList, Image, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import restaurants from '../../../assets/data/restaurants.json'
-import { useBasketContext } from '../../navigation/BasketContext';
-import BasketDishItem from '../../components/BasketDishItem';
-import { useOrderContext } from '../../navigation/OrderContext';
 import { useNavigation } from '@react-navigation/native';
-
-//const restaurant = restaurants[0]
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import BasketDishItem from '../../components/BasketDishItem';
+import { useBasketContext } from '../../navigation/BasketContext';
+import { useOrderContext } from '../../navigation/OrderContext';
 
 const Basket = () => {
 
-    const { restaurant, basketDishes, price } = useBasketContext();
+    const { restaurant, basketDishes, price, basket } = useBasketContext();
     const finalTotal = price + restaurant.deliveryFee;
 
     const { createOrder } = useOrderContext();
@@ -17,7 +14,11 @@ const Basket = () => {
 
     const onCreateOrder = async () => {
         await createOrder();
-        navigation.navigate("HomeTabs", { screen: "Orders Tab" });
+        Alert.alert("Order Placed!");
+        navigation.navigate("Home", {
+            screen: "Restaurant",
+            params: { restaurantId: restaurant.id }
+        });
     }
 
     return (
@@ -37,10 +38,13 @@ const Basket = () => {
                 <Text style={styles.totalLabel}>Delivery Fee: ${restaurant.deliveryFee.toFixed(2)}</Text>
                 <Text style={styles.totalLabel}>Final Total: ${finalTotal.toFixed(2)}</Text>
             </View>
-
-            <Pressable onPress={onCreateOrder} style={styles.button}>
-                <Text style={styles.buttonText}>Create Order </Text>
-            </Pressable>
+            {
+                basket && (
+                    <Pressable onPress={onCreateOrder} style={styles.button}>
+                        <Text style={styles.buttonText}>Create Order </Text>
+                    </Pressable>
+                )
+            }
         </View>
     );
 }
@@ -102,6 +106,6 @@ const styles = StyleSheet.create({
     },
     totalLabel: {
         fontSize: 16,
-        marginVertical: 8, // Add some space between the totals for better readability
+        marginVertical: 8,
     },
 });

@@ -1,25 +1,27 @@
-import { Children, createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../services/config';
-import { useBasketContext } from './BasketContext';
 import { collection, addDoc, deleteDoc, doc, getDocs, query, where, getDoc } from 'firebase/firestore';
 import { useAuthContext } from './AuthContext';
+import { useBasketContext } from './BasketContext';
 
 const OrderContext = createContext({});
 
 const OrderContextProvider = ({ children }) => {
-
     const { dbUser } = useAuthContext();
-
-    const { restaurant, price, basketDishes, basket } = useBasketContext();
-    const [orders, setOrders] = useState([])
+    const { restaurant, price, basketDishes, basket, clearBasket } = useBasketContext();
+    const [orders, setOrders] = useState([]);
 
     useEffect(() => {
         const fetchOrders = async () => {
             if (dbUser) {
-                const ordersQuery = query(collection(db, "orders"), where("userId", "==", dbUser.id));
-                const querySnapshot = await getDocs(ordersQuery);
-                const fetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setOrders(fetchedOrders);
+                try {
+                    const ordersQuery = query(collection(db, "orders"), where("userId", "==", dbUser.id));
+                    const querySnapshot = await getDocs(ordersQuery);
+                    const fetchedOrders = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    setOrders(fetchedOrders);
+                } catch (error) {
+                    console.error("Error fetching orders:", error);
+                }
             }
         };
 
@@ -29,7 +31,7 @@ const OrderContextProvider = ({ children }) => {
     const createOrder = async () => {
         if (!dbUser || !restaurant || !basket) {
             console.error("Missing dbUser, restaurant, or basket data");
-            return; // Early exit if necessary data is missing
+            return;
         }
 
         try {
@@ -49,7 +51,7 @@ const OrderContextProvider = ({ children }) => {
                     dish: basketDish.dish
                 }).catch(err => {
                     console.error("Failed to create OrderDish:", err);
-                    throw err; // Re-throw to handle at a higher level if necessary
+                    throw err;
                 })
             );
 
@@ -58,16 +60,13 @@ const OrderContextProvider = ({ children }) => {
             const basketDishQuery = query(collection(db, "basketDish"), where("basketId", "==", basket.id));
             const basketDishSnapshot = await getDocs(basketDishQuery);
 
-            if (basketDishSnapshot.empty) {
-                console.log("No basketDish documents found for the basket ID:", basket.id);
-            } else {
+            if (!basketDishSnapshot.empty) {
                 const basketDishDeletePromises = basketDishSnapshot.docs.map(dishDoc =>
                     deleteDoc(doc(db, "basketDish", dishDoc.id)).catch(err => {
                         console.error("Failed to delete BasketDish:", err);
-                        throw err; // Re-throw to handle at a higher level if necessary
+                        throw err;
                     })
                 );
-
                 await Promise.all(basketDishDeletePromises);
                 console.log("BasketDish documents deleted successfully.");
             }
@@ -77,9 +76,7 @@ const OrderContextProvider = ({ children }) => {
 
             setOrders(prevOrders => [...prevOrders, { ...orderData, id: orderDocRef.id }]);
 
-            // Clear the basket context after order creation
-            useBasketContext().clearBasket();
-
+            clearBasket();
         } catch (error) {
             console.error("Failed to complete order process:", error);
         }
@@ -96,25 +93,22 @@ const OrderContextProvider = ({ children }) => {
             const orderSnapshot = await getDoc(orderRef);
 
             if (orderSnapshot.exists()) {
-                console.log("Order data:", orderSnapshot.data());
                 const orderData = { id: orderSnapshot.id, ...orderSnapshot.data() };
 
-                // Query to get OrderDish documents linked to this order
                 const orderDishesQuery = query(collection(db, "OrderDish"), where("orderId", "==", id));
                 const dishesSnapshot = await getDocs(orderDishesQuery);
                 const orderDishes = dishesSnapshot.docs.map(dishDoc => ({
                     id: dishDoc.id, ...dishDoc.data()
                 }));
 
-                // Combine the order data with its dishes
                 return { ...orderData, dishes: orderDishes };
             } else {
                 console.log("No order found with ID:", id);
-                return null; // or throw an error based on your error handling strategy
+                return null;
             }
         } catch (error) {
             console.error("Failed to fetch order:", error);
-            throw error; // or return null based on your error handling strategy
+            throw error;
         }
     };
 
@@ -123,7 +117,7 @@ const OrderContextProvider = ({ children }) => {
             {children}
         </OrderContext.Provider>
     );
-}
+};
 
 export default OrderContextProvider;
 

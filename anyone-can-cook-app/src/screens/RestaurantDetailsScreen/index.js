@@ -1,46 +1,46 @@
-import { Image, StyleSheet, Text, View, FlatList, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import DishListItem from '../../components/DishListItem';
-import styles from './styles';
-import RestaurantHeader from './header';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
+import { FlatList, Pressable, Text, View, ActivityIndicator } from 'react-native';
+import DishListItem from '../../components/DishListItem';
 import { useBasketContext } from '../../navigation/BasketContext';
-import { fetchRestaurants, fetchDishes } from '../../services/firebaseServices'
+import { fetchDishes, fetchRestaurants } from '../../services/firebaseServices';
+import RestaurantHeader from './header';
+import styles from './styles';
 
 export const RestaurantDetailsScreen = () => {
-
     const navigation = useNavigation();
     const route = useRoute();
     const { restaurantId } = route.params;
 
     const [restaurant, setRestaurant] = useState(null);
     const [dishes, setDishes] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    const { setRestaurant: setBasketRestaurant, basket, basketDishes } = useBasketContext()
+    const { setRestaurant: setBasketRestaurant, basket, basketDishes } = useBasketContext();
 
     useEffect(() => {
         const getRestaurantDetails = async () => {
             setBasketRestaurant(null);
+            setLoading(true);
             const allRestaurants = await fetchRestaurants();
             const foundRestaurant = allRestaurants.find(r => r.id === restaurantId);
             if (foundRestaurant) {
                 setRestaurant(foundRestaurant);
-                // Coming from BasketContext
                 setBasketRestaurant(foundRestaurant);
                 const fetchedDishes = await fetchDishes(restaurantId);
-                setDishes(fetchedDishes)
+                setDishes(fetchedDishes);
             }
+            setLoading(false);
         }
 
         getRestaurantDetails();
-
     }, [restaurantId]);
 
-    if (!restaurant) {
+    if (loading) {
         return (
-            <View style={styles.page}>
-                <Text>No restaurant found</Text>
+            <View style={[styles.page, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" />
             </View>
         );
     }
@@ -61,13 +61,13 @@ export const RestaurantDetailsScreen = () => {
                 color="white"
                 style={styles.iconContainer}
             />
-            {
-                basket && <Pressable onPress={() => navigation.navigate("Basket")} style={styles.button}>
+            {basket && (
+                <Pressable onPress={() => navigation.navigate("Basket")} style={styles.button}>
                     <Text style={styles.buttonText}>
                         Open Basket • ({basketDishes.length})
                     </Text>
                 </Pressable>
-            }
+            )}
         </View>
-    )
+    );
 }

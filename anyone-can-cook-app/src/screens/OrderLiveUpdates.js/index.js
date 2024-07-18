@@ -81,8 +81,6 @@ const OrderLiveUpdates = ({ id }) => {
         return () => unsubscribe(); // Cleanup subscription on unmount
     }, [order?.courier?.id]);
 
-    console.log('Hi babe', order)
-
     useEffect(() => {
         if (!order) {
             return;

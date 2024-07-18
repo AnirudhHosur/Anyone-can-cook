@@ -14,6 +14,13 @@ const BasketContextProvider = ({ children }) => {
     const [basketDishes, setBasketDishes] = useState([])
     const [price, setPrice] = useState(0);
 
+    const clearBasket = () => {
+        setBasket(null);
+        setBasketDishes([]);
+        setPrice(0);
+        //setRestaurant(null);
+    };
+
     useEffect(() => {
         // Calculate the price whenever the basket dishes change
         const newTotal = basketDishes.reduce((acc, dish) => {
@@ -68,27 +75,25 @@ const BasketContextProvider = ({ children }) => {
     }, [dbUser, restaurant]);
 
     const createNewBasket = async () => {
-        if (dbUser && restaurant) {
-            console.log('Trying to create new basket');
-            try {
-                const newBasket = {
-                    userId: dbUser.id,
-                    restaurantId: restaurant.id,
-                    items: [], // Initially empty or set up with default items
-                };
-                const docRef = await addDoc(collection(db, "basket"), newBasket);
-                const createdBasket = { id: docRef.id, ...newBasket }; // Correctly assign id here
-                setBasket(createdBasket);
-                Alert.alert("Success", "New basket created.");
-                console.log('New basket created :)', createdBasket);
-                return createdBasket; // Returning the new basket including its ID
-            } catch (error) {
-                console.error("Error creating new basket:", error);
-                Alert.alert("Error", "Unable to create a new basket.");
-                return null;
-            }
-        } else {
+        if (!dbUser || !restaurant) {
             Alert.alert("Missing Information", "Cannot create basket without user and restaurant info.");
+            return null;
+        }
+
+        try {
+            const newBasket = {
+                userId: dbUser.id,
+                restaurantId: restaurant.id,
+                items: [],
+            };
+            const docRef = await addDoc(collection(db, "basket"), newBasket);
+            const createdBasket = { id: docRef.id, ...newBasket };
+            setBasket(createdBasket);
+            console.log('New basket created :)', createdBasket);
+            return createdBasket;
+        } catch (error) {
+            console.error("Error creating new basket:", error);
+            Alert.alert("Error", "Unable to create a new basket.");
             return null;
         }
     };
@@ -100,12 +105,12 @@ const BasketContextProvider = ({ children }) => {
             console.log('Basket does not exist :/');
             return;
         }
-        console.log('This is my basket', theBasket);
+
         try {
             const basketDishData = {
                 quantity: quantity,
                 dish: dish,
-                basketId: theBasket.id 
+                basketId: theBasket.id
             };
             await addDoc(collection(db, "basketDish"), basketDishData);
             setBasketDishes([...basketDishes, basketDishData])
@@ -117,7 +122,7 @@ const BasketContextProvider = ({ children }) => {
     };
 
     return (
-        <BasketContext.Provider value={{ addDishToBasket, restaurant, setRestaurant, basket, basketDishes, price }}>
+        <BasketContext.Provider value={{ addDishToBasket, restaurant, setRestaurant, basket, basketDishes, price, clearBasket }}>
             {children}
         </BasketContext.Provider>
     )

@@ -4,7 +4,6 @@ import DishDetailsScreen from '../screens/DishDetailsScreen';
 import HomeScreen from '../screens/HomeScreen';
 import OrderScreen from '../screens/OrdersScreen';
 import { RestaurantDetailsScreen } from '../screens/RestaurantDetailsScreen';
-//import { createMaterialBottomTabNavigator } from 'react-native-paper/lib/typescript/react-navigation';
 import { Entypo, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
 import { createMaterialBottomTabNavigator } from '@react-navigation/material-bottom-tabs';
 import LoginScreen from '../screens/authScreens/LoginScreen';
@@ -12,12 +11,21 @@ import RegisterScreen from '../screens/authScreens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import { useAuthContext } from './AuthContext';
 import OrderDetailsNavigator from './OrderDetailsNavigator';
+import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
 
-    const { dbUser, authUser } = useAuthContext();
+    const { dbUser, authUser, loading } = useAuthContext();
+
+    if (loading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" />
+            </View>
+        );
+    }
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
