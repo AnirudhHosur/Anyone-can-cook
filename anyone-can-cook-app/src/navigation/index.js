@@ -1,4 +1,8 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useEffect, useState } from 'react';
+import { useAuthContext } from './AuthContext';
+import { ActivityIndicator, View } from 'react-native';
+
 import Basket from '../screens/Basket';
 import DishDetailsScreen from '../screens/DishDetailsScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -9,14 +13,11 @@ import { createMaterialBottomTabNavigator } from '@react-navigation/material-bot
 import LoginScreen from '../screens/authScreens/LoginScreen';
 import RegisterScreen from '../screens/authScreens/RegisterScreen';
 import ProfileScreen from '../screens/ProfileScreen';
-import { useAuthContext } from './AuthContext';
 import OrderDetailsNavigator from './OrderDetailsNavigator';
-import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigator = () => {
-
     const { dbUser, authUser, loading } = useAuthContext();
 
     if (loading) {
@@ -29,33 +30,25 @@ const RootNavigator = () => {
 
     return (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-            {authUser ? (
-                <>
-                    {dbUser ? (
-                        <Stack.Screen name="HomeTabs" component={HomeTabs} />
-                    ) : (
-                        <Stack.Screen name="Profile" component={ProfileScreen} initialParams={{ fromLogin: true }} />
-                    )}
-                </>
-            ) : (
+            {!authUser ? (
                 <>
                     <Stack.Screen name="LoginScreen" component={LoginScreen} />
                     <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
                 </>
+            ) : !dbUser ? (
+                <Stack.Screen name="Profile" component={ProfileScreen} />
+            ) : (
+                <Stack.Screen name="HomeTabs" component={HomeTabs} />
             )}
         </Stack.Navigator>
-    )
-}
+    );
+};
 
 const Tab = createMaterialBottomTabNavigator();
 
 const HomeTabs = () => {
     return (
-        <Tab.Navigator
-            barStyle={{ backgroundColor: 'white' }}
-            activeColor="black"
-            inactiveColor="grey"
-        >
+        <Tab.Navigator barStyle={{ backgroundColor: 'white' }} activeColor="black" inactiveColor="grey">
             <Tab.Screen name='Home' component={HomeStackNavigator}
                 options={{
                     tabBarIcon: ({ color }) => (
@@ -78,8 +71,8 @@ const HomeTabs = () => {
                 }}
             />
         </Tab.Navigator>
-    )
-}
+    );
+};
 
 const HomeStack = createNativeStackNavigator();
 
@@ -91,8 +84,8 @@ const HomeStackNavigator = () => {
             <HomeStack.Screen name='Dish' component={DishDetailsScreen} />
             <HomeStack.Screen name='Basket' component={Basket} />
         </HomeStack.Navigator>
-    )
-}
+    );
+};
 
 const OrdersStack = createNativeStackNavigator();
 
@@ -102,7 +95,7 @@ const OrderStackNavigator = () => {
             <OrdersStack.Screen name='Orders' component={OrderScreen} options={{ headerTitleAlign: 'center' }} />
             <OrdersStack.Screen name='Order' component={OrderDetailsNavigator} options={{ headerTitleAlign: 'center', headerShown: 'false' }} />
         </OrdersStack.Navigator>
-    )
-}
+    );
+};
 
 export default RootNavigator;

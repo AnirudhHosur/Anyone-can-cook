@@ -14,7 +14,7 @@ const ProfileScreen = () => {
     const [lat, setLat] = useState('');
     const [lng, setLng] = useState('');
     const navigation = useNavigation();
-    const { uid, dbUser, setDbUser } = useAuthContext();
+    const { authUser, dbUser, setDbUser } = useAuthContext();
 
     useEffect(() => {
         if (dbUser) {
@@ -36,7 +36,7 @@ const ProfileScreen = () => {
     };
 
     const updateUser = async () => {
-        if (!uid) {
+        if (!authUser.uid) {
             Alert.alert("Error", "No user ID found");
             return;
         }
@@ -49,6 +49,7 @@ const ProfileScreen = () => {
         }
 
         const updatedData = {
+            id: authUser.uid,
             firstName,
             lastName,
             address,
@@ -60,7 +61,7 @@ const ProfileScreen = () => {
 
         if (hasChanges) {
             try {
-                await setDoc(doc(db, "users", uid), updatedData, { merge: true });
+                await setDoc(doc(db, "users", authUser.uid), updatedData, { merge: true });
                 setDbUser(updatedData);
                 Alert.alert("Success", "Profile updated successfully!");
             } catch (error) {
@@ -73,7 +74,7 @@ const ProfileScreen = () => {
     };
 
     const createUser = async () => {
-        if (!uid) {
+        if (!authUser.uid) {
             Alert.alert("Error", "No user ID found");
             return;
         }
@@ -86,7 +87,7 @@ const ProfileScreen = () => {
         }
 
         const userData = {
-            id: uid,
+            id: authUser.uid,
             firstName,
             lastName,
             address,
@@ -95,7 +96,7 @@ const ProfileScreen = () => {
         };
 
         try {
-            await setDoc(doc(db, "users", uid), userData);
+            await setDoc(doc(db, "users", authUser.uid), userData);
             setDbUser(userData);
             Alert.alert("Success", "Profile saved successfully!");
         } catch (error) {
@@ -148,7 +149,6 @@ const ProfileScreen = () => {
                 onPress={() => {
                     auth.signOut();
                     Alert.alert('Log out Successful', 'You have successfully logged out!');
-                    navigation.navigate('LoginScreen');
                 }}
                 style={styles.signOutButton}
             >

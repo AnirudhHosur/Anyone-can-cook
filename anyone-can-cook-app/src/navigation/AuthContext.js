@@ -16,6 +16,7 @@ const AuthContextProvider = ({ children }) => {
                 setAuthUser(user);
                 fetchDbUser(user.uid);
             } else {
+                console.log("No user logged in");
                 setAuthUser(null);
                 setDbUser(null);
                 setLoading(false);
@@ -76,10 +77,10 @@ const AuthContextProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ authUser, dbUser, loading, signUp, signIn, logOut }}>
+        <AuthContext.Provider value={{ authUser, dbUser, loading, signUp, signIn, logOut, setDbUser }}>
             {children}
         </AuthContext.Provider>
-    )
+    );
 }
 
 export default AuthContextProvider;

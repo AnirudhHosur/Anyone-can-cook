@@ -4,11 +4,12 @@ import MapView, { Marker } from "react-native-maps";
 import { doc, getDoc, onSnapshot } from "firebase/firestore";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { db } from "../../services/config";
+import { useAuthContext } from "../../navigation/AuthContext";
 
 const OrderLiveUpdates = ({ id }) => {
     const [order, setOrder] = useState(null);
     const [courier, setCourier] = useState(null);
-
+    const { dbUser } = useAuthContext();
     const mapRef = useRef(null);
 
     useEffect(() => {
@@ -78,7 +79,7 @@ const OrderLiveUpdates = ({ id }) => {
             }
         });
 
-        return () => unsubscribe(); // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, [order?.courier?.id]);
 
     useEffect(() => {
@@ -114,7 +115,37 @@ const OrderLiveUpdates = ({ id }) => {
                                 borderRadius: 40,
                             }}
                         >
-                            <FontAwesome5 name="motorcycle" size={24} color="white" />
+                            <FontAwesome5 name="car" size={24} color="white" />
+                        </View>
+                    </Marker>
+                )}
+                {order?.restaurant?.lat && (
+                    <Marker
+                        coordinate={{ latitude: order.restaurant.lat, longitude: order.restaurant.lng }}
+                    >
+                        <View
+                            style={{
+                                padding: 5,
+                                backgroundColor: "red",
+                                borderRadius: 40,
+                            }}
+                        >
+                            <FontAwesome5 name="utensils" size={24} color="white" />
+                        </View>
+                    </Marker>
+                )}
+                {dbUser?.lat && (
+                    <Marker
+                        coordinate={{ latitude: dbUser.lat, longitude: dbUser.lng }}
+                    >
+                        <View
+                            style={{
+                                padding: 5,
+                                backgroundColor: "blue",
+                                borderRadius: 40,
+                            }}
+                        >
+                            <FontAwesome5 name="user" size={24} color="white" />
                         </View>
                     </Marker>
                 )}

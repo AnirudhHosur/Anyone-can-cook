@@ -15,36 +15,10 @@ const RegisterScreen = () => {
 
     const navigation = useNavigation();
 
-    // const handleSignUp = () => {
-    //     if (email && password && firstName && lastName) {
-    //         createUserWithEmailAndPassword(auth, email, password)
-    //             .then((userCredential) => {
-    //                 // User is created. Now add additional info to Firestore
-    //                 const userRef = doc(db, "users", userCredential.user.uid);
-    //                 return setDoc(userRef, {
-    //                     firstName: firstName,
-    //                     lastName: lastName,
-    //                     email: email
-    //                 });
-    //             })
-    //             .then(() => {
-    //                 Alert.alert('Registration Successful', 'You have registered successfully!');
-    //                 navigation.navigate('LoginScreen');
-    //             })
-    //             .catch((error) => {
-    //                 console.log(error);
-    //                 Alert.alert('Registration Failed', error.message);
-    //             });
-    //     } else {
-    //         Alert.alert('Input Required', 'Please fill all fields.');
-    //     }
-    // };
-
     const handleSignUp = async () => {
         try {
             await signUp(email, password, firstName, lastName);
             Alert.alert('Registration Successful', 'You have registered successfully!');
-            navigation.navigate('LoginScreen');
         } catch (error) {
             Alert.alert('Registration Failed', error.message);
         }
