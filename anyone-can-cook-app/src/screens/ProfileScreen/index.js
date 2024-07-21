@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Alert, TouchableOpacity, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth, db } from '../../services/config';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthContext } from '../../navigation/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import { GOOGLE_API_KEY_AUTOCOMPLETE } from '@env';
 
 const ProfileScreen = () => {
     const [firstName, setFirstName] = useState('');
@@ -21,8 +23,8 @@ const ProfileScreen = () => {
             setFirstName(dbUser.firstName || '');
             setLastName(dbUser.lastName || '');
             setAddress(dbUser.address || '');
-            setLat(dbUser.lat ? String(dbUser.lat) : '');
-            setLng(dbUser.lng ? String(dbUser.lng) : '');
+            setLat(dbUser.lat !== null ? String(dbUser.lat) : '');
+            setLng(dbUser.lng !== null ? String(dbUser.lng) : '');
         }
     }, [dbUser]);
 
@@ -41,23 +43,18 @@ const ProfileScreen = () => {
             return;
         }
 
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-        if (isNaN(latitude) || isNaN(longitude)) {
-            Alert.alert("Invalid Input", "Please enter valid latitude and longitude values.");
-            return;
-        }
-
         const updatedData = {
             id: authUser.uid,
-            firstName,
-            lastName,
-            address,
-            lat: latitude,
-            lng: longitude,
+            firstName: firstName || null,
+            lastName: lastName || null,
+            address: address || null,
+            lat: lat ? parseFloat(lat) : null,
+            lng: lng ? parseFloat(lng) : null,
         };
 
-        const hasChanges = Object.keys(updatedData).some((key) => dbUser[key] !== updatedData[key]);
+        const hasChanges = Object.keys(updatedData).some(
+            (key) => dbUser[key] !== updatedData[key]
+        );
 
         if (hasChanges) {
             try {
@@ -79,20 +76,13 @@ const ProfileScreen = () => {
             return;
         }
 
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-        if (isNaN(latitude) || isNaN(longitude)) {
-            Alert.alert("Invalid Input", "Please enter valid latitude and longitude values.");
-            return;
-        }
-
         const userData = {
             id: authUser.uid,
-            firstName,
-            lastName,
-            address,
-            lat: latitude,
-            lng: longitude,
+            firstName: firstName || null,
+            lastName: lastName || null,
+            address: address || null,
+            lat: lat ? parseFloat(lat) : null,
+            lng: lng ? parseFloat(lng) : null,
         };
 
         try {
@@ -105,56 +95,70 @@ const ProfileScreen = () => {
         }
     };
 
+    const renderItem = ({ item }) => (
+        <View style={styles.inputContainer}>
+            {item.type === 'textInput' ? (
+                <TextInput
+                    value={item.value}
+                    onChangeText={item.onChangeText}
+                    placeholder={item.placeholder}
+                    style={styles.input}
+                />
+            ) : item.type === 'googleAutocomplete' ? (
+                <GooglePlacesAutocomplete
+                    placeholder={item.placeholder}
+                    fetchDetails
+                    onPress={(data, details = null) => {
+                        setAddress(data.description);
+                        const { lat, lng } = details.geometry.location;
+                        setLat(lat.toString());
+                        setLng(lng.toString());
+                    }}
+                    query={{
+                        key: GOOGLE_API_KEY_AUTOCOMPLETE,
+                        language: 'en',
+                    }}
+                    styles={{
+                        textInput: styles.input,
+                        container: styles.autocompleteContainer,
+                        listView: styles.autocompleteListView,
+                    }}
+                />
+            ) : null}
+        </View>
+    );
+
+    const formFields = [
+        { type: 'textInput', value: firstName, onChangeText: setFirstName, placeholder: 'First Name' },
+        { type: 'textInput', value: lastName, onChangeText: setLastName, placeholder: 'Last Name' },
+        { type: 'googleAutocomplete', placeholder: 'Address' },
+    ];
+
     return (
         <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Profile</Text>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    value={firstName}
-                    onChangeText={setFirstName}
-                    placeholder="First Name"
-                    style={styles.input}
-                />
-                <TextInput
-                    value={lastName}
-                    onChangeText={setLastName}
-                    placeholder="Last Name"
-                    style={styles.input}
-                />
-                <TextInput
-                    value={address}
-                    onChangeText={setAddress}
-                    placeholder="Address"
-                    style={styles.input}
-                />
-                <TextInput
-                    value={lat}
-                    onChangeText={setLat}
-                    placeholder="Latitude"
-                    keyboardType="numeric"
-                    style={styles.input}
-                />
-                <TextInput
-                    value={lng}
-                    onChangeText={setLng}
-                    placeholder="Longitude"
-                    keyboardType="numeric"
-                    style={styles.input}
-                />
-            </View>
-            <TouchableOpacity onPress={onSave} style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                onPress={() => {
-                    auth.signOut();
-                    Alert.alert('Log out Successful', 'You have successfully logged out!');
-                }}
-                style={styles.signOutButton}
-            >
-                <Text style={styles.signOutButtonText}>Sign out</Text>
-                <Ionicons name="log-out-outline" size={20} color="red" />
-            </TouchableOpacity>
+            <FlatList
+                data={formFields}
+                renderItem={renderItem}
+                keyExtractor={(item, index) => index.toString()}
+                ListHeaderComponent={() => <Text style={styles.title}>Profile</Text>}
+                ListFooterComponent={() => (
+                    <View>
+                        <TouchableOpacity onPress={onSave} style={styles.saveButton}>
+                            <Text style={styles.saveButtonText}>Save</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                auth.signOut();
+                                Alert.alert('Log out Successful', 'You have successfully logged out!');
+                            }}
+                            style={styles.signOutButton}
+                        >
+                            <Text style={styles.signOutButtonText}>Sign out</Text>
+                            <Ionicons name="log-out-outline" size={20} color="red" />
+                        </TouchableOpacity>
+                    </View>
+                )}
+            />
         </SafeAreaView>
     );
 };
@@ -174,16 +178,24 @@ const styles = StyleSheet.create({
         color: '#333',
     },
     inputContainer: {
-        marginBottom: 20,
+        marginBottom: 15,
     },
     input: {
-        marginBottom: 15,
         backgroundColor: '#fff',
         paddingVertical: 15,
         paddingHorizontal: 20,
         borderRadius: 10,
         borderWidth: 1,
         borderColor: '#ddd',
+    },
+    autocompleteContainer: {
+        flex: 1,
+        zIndex: 1,
+    },
+    autocompleteListView: {
+        backgroundColor: '#fff',
+        borderColor: '#ddd',
+        borderWidth: 1,
     },
     saveButton: {
         backgroundColor: '#007bff',
