@@ -12,9 +12,15 @@ on:
 jobs:
   Deploy-Preview:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./anyone-can-kitchen-dashboard
     steps:
       - uses: actions/checkout@v3
-        
+
+      - name: Navigate to Project Directory
+        run: cd anyone-can-kitchen-dashboard
+
       - name: Install Vercel CLI
         run: npm install --global vercel
         working-directory: anyone-can-kitchen-dashboard
