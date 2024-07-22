@@ -26,11 +26,8 @@ jobs:
           cache: "npm"
           cache-dependency-path: ./anyone-can-kitchen-dashboard/*.json
 
-      - name: Update package-lock.json and Install Dependencies
-        run: |
-          rm -rf node_modules package-lock.json
-          npm cache clean --force
-          npm ci
+      - name: Install Dependencies
+        run: npm ci
 
       - name: Build Project
         run: npm run build --if-present
