@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: "node"
           cache: "npm"
+          cache-dependency-path: ./anyone-can-kitchen-dashboard/*.json
 
       - name: Install Dependencies
         run: npm ci
