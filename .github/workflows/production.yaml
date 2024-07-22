@@ -19,18 +19,16 @@ jobs:
       - name: Use Latest Node.js Version
         uses: actions/setup-node@v3
         with:
-          node-version: 'node'
-          cache: 'npm'
+          node-version: "node"
+          cache: "npm"
 
       - name: Install Dependencies
-        run: |
-          cd anyone-can-kitchen-dashboard
-          npm ci
+        run: npm ci
+        working-directory: anyone-can-kitchen-dashboard
 
       - name: Build Project
-        run: |
-          cd anyone-can-kitchen-dashboard
-          npm run build --if-present
+        run: npm run build --if-present
+        working-directory: anyone-can-kitchen-dashboard
 
       - name: Install Vercel CLI
         run: npm install --global vercel
