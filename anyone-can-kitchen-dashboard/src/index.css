@@ -1,18 +1,18 @@
 .ant-btn-primary {
-  background-color: #3fc060;
-  border-color: #3fc060;
+  background-color: #d44b22;
+  border-color: #d44b22;
 }
 
 .ant-pagination-item-active {
-  border-color: #3fc060 !important;
+  border-color: #d44b22 !important;
 }
 
 li.ant-pagination-item-active a {
-  color: #3fc060 !important;
+  color: #d44b22 !important;
 }
 
 .ant-menu-item-selected {
-  background-color: #3fc060 !important;
+  background-color: #d44b22 !important;
 }
 
 .ant-menu-item-selected span {
@@ -20,9 +20,9 @@ li.ant-pagination-item-active a {
 }
 
 .ant-menu-item-active {
-  color: #3fc060 !important;
+  color: #d44b22 !important;
 }
 
 .custom-row-hover:hover td {
-  background: rgb(20, 170, 70);
+  background: rgb(177, 37, 18);
 }
