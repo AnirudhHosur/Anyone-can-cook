@@ -12,12 +12,11 @@ on:
 jobs:
   Deploy-Production:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./anyone-can-kitchen-dashboard/
     steps:
       - uses: actions/checkout@v3
-
+        with:
+          path: anyone-can-kitchen-dashboard
+      
       - name: Install Vercel CLI
         run: npm install --global vercel
 
@@ -29,3 +28,4 @@ jobs:
 
       - name: Deploy Project Artifacts
         run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: anyone-can-kitchen-dashboard
