@@ -17,7 +17,7 @@ function App() {
             <AppRoutes />
           </Content>
           <Footer style={{ textAlign: 'center' }}>
-            Anyone can cook kitchen dashboard @2024
+            Anyone Can Cook | Kitchen Dashboard @2024
           </Footer>
         </Layout>
       </Layout>
