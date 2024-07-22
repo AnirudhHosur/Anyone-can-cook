@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, message } from "antd";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../services/config";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const SignUp = () => {
     const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ const SignUp = () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             message.success("User registered successfully!");
-            navigate("/login")
+            navigate("/settings");
         } catch (error) {
             console.error("Error signing up:", error);
             message.error(error.message);
@@ -38,6 +38,9 @@ const SignUp = () => {
                     <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
                         Sign Up
                     </Button>
+                </Form.Item>
+                <Form.Item style={{ textAlign: "center" }}>
+                    <Link to="/login">Already an admin? Login</Link>
                 </Form.Item>
             </Form>
         </div>

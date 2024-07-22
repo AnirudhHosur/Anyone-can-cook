@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Form, Input, Button, message } from "antd";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../../services/config";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const SignIn = () => {
     const [email, setEmail] = useState("");
@@ -13,7 +13,7 @@ const SignIn = () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             message.success("User signed in successfully!");
-            navigate("/")
+            navigate("/settings")
         } catch (error) {
             console.error("Error signing in:", error);
             message.error(error.message);
@@ -38,6 +38,9 @@ const SignIn = () => {
                     <Button type="primary" htmlType="submit" style={{ width: "100%" }}>
                         Sign In
                     </Button>
+                </Form.Item>
+                <Form.Item style={{ textAlign: "center" }}>
+                    <Link to="/register">Not a user yet? Register</Link>
                 </Form.Item>
             </Form>
         </div>
