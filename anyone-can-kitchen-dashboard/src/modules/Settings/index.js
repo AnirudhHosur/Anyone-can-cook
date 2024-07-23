@@ -67,9 +67,9 @@ const Settings = () => {
             };
 
             const docRef = await addDoc(collection(db, "restaurants"), newRestaurant);
-            const docId = docRef.id;  // Get the ID of the new document
+            const docId = docRef.id;
 
-            console.log("Restaurant ID:", docId); // Log the ID of the document
+            console.log("Restaurant ID:", docId);
 
             const newRestaurantWithId = { ...newRestaurant, id: docId };
             setRestaurant(newRestaurantWithId);
@@ -134,7 +134,7 @@ const Settings = () => {
                 </Form.Item>
                 <Form.Item label="Restaurant Address">
                     <GooglePlacesAutocomplete
-                        apiKey={"AIzaSyDqs71eQm4pVQJTXptIcn_LrNbrf-TRF5A"}
+                        apiKey={process.env.REACT_APP_GOOGLE_MAPS_AUTOCOMPLETE_API_KEY}
                         selectProps={{
                             value: address,
                             onChange: getAddressLatLng,
