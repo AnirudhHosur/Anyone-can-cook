@@ -148,6 +148,7 @@ const Settings = () => {
                     </Button>
                 </Form.Item>
             </Form>
+            <h3>Your co-ordinates</h3>
             <span>
                 {coordinates?.lat} - {coordinates?.lng}
             </span>
