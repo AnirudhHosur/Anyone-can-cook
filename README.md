@@ -60,18 +60,18 @@ cd ../anyone-can-kitchen-dashboard
 npm start
 ```
 
-## Features
-# anyone-can-cook-app
+# Features
+## anyone-can-cook-app
 - Browse and search for home-cooked food options.
 - View detailed information about dishes and home kitchens.
 - Place orders and track delivery status.
 
-# anyone-can-deliver
+## anyone-can-deliver
 - Receive and manage delivery requests.
 - Update delivery status and track deliveries.
 - Communicate with home kitchens and customers.
 
-# anyone-can-kitchen-dashboard
+## anyone-can-kitchen-dashboard
 - Manage menu items and pricing.
 - View incoming orders and update order statuses.
 
